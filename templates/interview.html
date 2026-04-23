@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}AI面试 - 智能招聘平台{% endblock %}
+
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex flex-column">
+    <div class="row flex-grow-1 justify-content-center align-items-center">
+        <div class="col-12 col-md-10">
+            <div class="card h-100" style="min-height: 600px;">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-robot me-2"></i>AI模拟面试
+                    </h4>
+                </div>
+                <div class="card-body d-flex flex-column" style="min-height: 400px;">
+                    <!-- 面试信息提示 -->
+                    <div class="alert alert-info mb-3" id="interview-info">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+                            <div>
+                                <strong>面试方向：</strong>
+                                <span id="interview-direction">加载中...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <span class="badge bg-info">面试难度：{{ interview.interview_type }}</span>
+                        <span class="badge bg-secondary ms-2">问题进度：<span id="question-progress">加载中...</span></span>
+                    </div>
+                    
+                    <!-- 面试问题 -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-question-circle me-2"></i>面试问题
+                            </h5>
+                            <p class="card-text" id="current-question">加载中...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 回答输入 -->
+                    <div class="mb-4 flex-grow-1" style="min-height: 200px;">
+                        <label for="answer" class="form-label">您的回答</label>
+                        <textarea class="form-control h-100" id="answer" placeholder="请输入您的回答..."></textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="/profile" class="btn btn-outline-secondary">返回个人中心</a>
+                        <button type="button" class="btn btn-primary" onclick="submitAnswer()" id="submit-btn">提交回答</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const interviewId = {{ interview.id }};
+let currentQuestion = '';
+let totalQuestions = 0;
+let currentIndex = 0;
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+async function loadCurrentQuestion() {
+    const token = getCookie('access_token');
+    try {
+        const response = await axios.get(`/api/interviews/${interviewId}`, {
+            withCredentials: true
+        });
+        
+        const data = response.data;
+        currentQuestion = data.current_question;
+        totalQuestions = data.total_questions;
+        currentIndex = data.current_question_index;
+        
+        // 处理换行符：将 \n 转换为 HTML 的 <br>
+        const questionHtml = (currentQuestion || '面试已结束').replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+        document.getElementById('current-question').innerHTML = questionHtml;
+        document.getElementById('question-progress').textContent = `${currentIndex}/${totalQuestions}`;
+        
+        if (!currentQuestion) {
+            document.getElementById('answer').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+        }
+    } catch (error) {
+        toast.error('加载失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function submitAnswer() {
+    const answer = document.getElementById('answer').value.trim();
+    if (!answer) {
+        toast.warning('请输入您的回答');
+        return;
+    }
+    
+    const token = getCookie('access_token');
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '提交中...';
+    
+    // 检查是否是最后一题（currentIndex是当前题号，从1开始）
+    const isLastQuestion = (currentIndex === totalQuestions);
+    
+    // 如果是最后一题，提交后跳转到个人中心
+    if (isLastQuestion) {
+        // 立即显示完成提示
+        toast.success('🎉 面试已完成！');
+        toast.info('AI正在后台生成评估报告，1-2分钟后可在面试记录中查看', 3000);
+        
+        // 使用 fetch 发送答案，等待请求发送成功后再跳转
+        fetch(`/api/interviews/${interviewId}/answer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',  // 自动发送cookie
+            body: JSON.stringify({ answer: answer }),
+            keepalive: true
+        })
+        .then(() => {
+            // 请求成功，立即跳转
+            window.location.href = '/profile#interviews';
+        })
+        .catch(() => {
+            // 即使失败也跳转，避免用户卡住
+            window.location.href = '/profile#interviews';
+        });
+        
+        // 设置超时保护：如果1.5秒内没有跳转，强制跳转
+        setTimeout(() => {
+            if (window.location.pathname !== '/profile') {
+                window.location.href = '/profile#interviews';
+            }
+        }, 1500);
+        
+        return;
+    }
+    
+    // 非最后一题，使用带超时的请求
+    
+    try {
+        // 添加超时控制，如果3秒内后端没响应，也先跳转
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('timeout')), 3000);
+        });
+        
+        const requestPromise = axios.post(`/api/interviews/${interviewId}/answer`, {
+            answer: answer
+        }, {
+            withCredentials: true
+        });
+        
+        const response = await Promise.race([requestPromise, timeoutPromise]);
+        const data = response.data;
+        
+        if (data.is_completed) {
+            // 后端返回已完成（兜底方案）
+            toast.success('🎉 面试已完成！');
+            toast.info('AI正在后台生成评估报告，1-2分钟后可在个人中心查看', 3000);
+            
+            setTimeout(() => {
+                window.location.href = '/profile#interviews';
+            }, 500);
+        } else {
+            // 非最后一题，继续下一题
+            document.getElementById('answer').value = '';
+            const nextQuestionHtml = (data.next_question || '').replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+            document.getElementById('current-question').innerHTML = nextQuestionHtml;
+            document.getElementById('question-progress').textContent = `${data.current_question}/${data.total_questions}`;
+            
+            // 更新当前索引
+            currentIndex = data.current_question;
+            totalQuestions = data.total_questions;
+            
+            submitBtn.disabled = false;
+            submitBtn.textContent = '提交回答';
+            toast.success('回答已提交，请继续下一题');
+        }
+    } catch (error) {
+        if (error.message === 'timeout') {
+            toast.warning('提交中，请稍候...');
+            // 超时了，可能是最后一题在后台处理，直接跳转
+            setTimeout(() => {
+                window.location.href = '/profile#interviews';
+            }, 1000);
+        } else {
+            toast.error('提交失败：' + (error.response?.data?.detail || '未知错误'));
+            submitBtn.disabled = false;
+            submitBtn.textContent = '提交回答';
+        }
+    }
+}
+
+// 加载面试方向信息
+async function loadInterviewDirection() {
+    try {
+        const token = getCookie('access_token');
+        
+        // 先获取当前面试信息
+        const interviewResponse = await axios.get(`/api/interviews/${interviewId}`, {
+            withCredentials: true
+        });
+        
+        const interview = interviewResponse.data.interview || interviewResponse.data;
+        let directionText = '';
+        
+        // 如果面试关联了岗位，优先显示岗位信息
+        if (interview.job_id) {
+            try {
+                const jobResponse = await axios.get(`/api/jobs/${interview.job_id}`);
+                const job = jobResponse.data;
+                
+                const jobDirections = [];
+                jobDirections.push(`岗位：${job.title}`);
+                
+                if (job.required_skills) {
+                    const skillList = job.required_skills.split(',').slice(0, 4).map(s => s.trim()).join('、');
+                    jobDirections.push(`技能要求：${skillList}`);
+                }
+                
+                if (job.experience_required) {
+                    jobDirections.push(`经验要求：${job.experience_required}`);
+                }
+                
+                directionText = jobDirections.join(' | ');
+            } catch (jobError) {
+                // 降级到候选人信息
+                directionText = await getCandidateDirection(token);
+            }
+        } else {
+            // 没有关联岗位，显示候选人信息
+            directionText = await getCandidateDirection(token);
+        }
+        
+        document.getElementById('interview-direction').textContent = directionText;
+    } catch (error) {
+        document.getElementById('interview-direction').textContent = '技术面试';
+    }
+}
+
+// 获取候选人方向信息（降级方案）
+async function getCandidateDirection(token) {
+    try {
+        const candidateResponse = await axios.get('/api/candidates/me', {
+            withCredentials: true
+        });
+        
+        const candidate = candidateResponse.data;
+        const directions = [];
+        
+        if (candidate.target_job) {
+            directions.push(`求职意向：${candidate.target_job}`);
+        }
+        if (candidate.skills) {
+            const skillList = candidate.skills.split(',').slice(0, 3).map(s => s.trim()).join('、');
+            directions.push(`技能标签：${skillList}`);
+        }
+        
+        return directions.length > 0 ? directions.join(' | ') : '通用技术面试';
+    } catch (error) {
+        return '通用技术面试';
+    }
+}
+
+// 页面加载时获取面试方向和当前问题
+loadInterviewDirection();
+loadCurrentQuestion();
+</script>
+{% endblock %}
+

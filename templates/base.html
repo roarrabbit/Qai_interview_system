@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}智能招聘平台{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="navbar-container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-briefcase-fill"></i>
+                <span id="nav-site-name">智能招聘平台</span>
+            </a>
+            
+            <ul class="navbar-nav" id="navbarNav">
+                <li>
+                    <a class="nav-link" href="/" data-page="home">
+                        <i class="bi bi-house"></i>
+                        <span>首页</span>
+                    </a>
+                </li>
+                {% if user and user.role == 'candidate' %}
+                <li>
+                    <a class="nav-link" href="/jobs" data-page="jobs">
+                        <i class="bi bi-search"></i>
+                        <span>求职大厅</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if user and user.role == 'hr' %}
+                <li>
+                    <a class="nav-link" href="/talent-hall" data-page="talent-hall">
+                        <i class="bi bi-people"></i>
+                        <span>人才大厅</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if user %}
+                <li>
+                    <a class="nav-link" href="/chat" data-page="chat">
+                        <i class="bi bi-chat-dots"></i>
+                        <span>消息中心</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if user and user.role == 'candidate' %}
+                <li>
+                    <a class="nav-link" href="/candidate-dashboard" data-page="candidate-dashboard">
+                        <i class="bi bi-clipboard-data"></i>
+                        <span>求职面板</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if user and user.role == 'hr' %}
+                <li>
+                    <a class="nav-link" href="/hr-dashboard" data-page="hr-dashboard">
+                        <i class="bi bi-kanban"></i>
+                        <span>HR面板</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if user and user.role == 'admin' %}
+                <li>
+                    <a class="nav-link" href="/admin-dashboard" data-page="admin-dashboard">
+                        <i class="bi bi-shield-check"></i>
+                        <span>数据面板</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <div class="navbar-actions">
+                {% if user %}
+                <div class="dropdown" id="userDropdown">
+                    <div class="user-menu" onclick="toggleDropdown()">
+                        <div class="avatar">{{ user.username[0]|upper }}</div>
+                        <span class="user-menu-name">{{ user.username }}</span>
+                        <i class="bi bi-chevron-down user-menu-arrow"></i>
+                    </div>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a class="dropdown-item" href="/profile" data-page="profile">
+                            <i class="bi bi-person"></i>
+                            <span>个人中心</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/logout" style="color: #ef4444;">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>退出登录</span>
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <a class="nav-link" href="/login">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>登录</span>
+                </a>
+                <a class="btn btn-primary btn-sm" href="/register">立即注册</a>
+                {% endif %}
+            </div>
+            
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="bi bi-list" id="mobileMenuIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h5 id="footer-site-name">智能招聘平台</h5>
+                <p id="footer-intro">面向计算机行业的智能招聘解决方案</p>
+                <p id="footer-slogan"></p>
+            </div>
+            <div class="footer-section">
+                <h5>联系我们</h5>
+                <div id="footer-contact"></div>
+            </div>
+            <div class="footer-section">
+                <h5>服务支持</h5>
+                <div id="footer-service"></div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p id="footer-copyright">© 2025 智能招聘平台</p>
+            <p id="footer-icp"></p>
+        </div>
+    </footer>
+
+    <div class="modal-backdrop" id="modalBackdrop" onclick="closeAllModals()"></div>
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalTitle">确认操作</h5>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalBody">确定要执行此操作吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" id="confirmModalBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/axios.min.js"></script>
+    <script src="/static/js/toast.js"></script>
+    <script>
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;',
+            '/': '&#x2F;'
+        };
+        return String(text)
+            .replace(/[&<>'"\/]/g, function(m) { return map[m]; })
+            .replace(/\n/g, '<br>');
+    }
+
+    function toggleDropdown() {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    function toggleMobileMenu() {
+        const nav = document.getElementById('navbarNav');
+        const icon = document.getElementById('mobileMenuIcon');
+        nav.classList.toggle('show');
+        if (nav.classList.contains('show')) {
+            icon.className = 'bi bi-x';
+        } else {
+            icon.className = 'bi bi-list';
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 10) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        
+        document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === currentPath || (href !== '/' && currentPath.startsWith(href))) {
+                if (href === '/' && currentPath !== '/') return;
+                link.classList.add('active');
+            }
+        });
+        
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeAllModals();
+                }
+            });
+        });
+        
+        loadGlobalConfig();
+    });
+
+    async function loadGlobalConfig() {
+        try {
+            const response = await axios.post('/api/system/config');
+            const config = response.data;
+            
+            if (config.site_name) {
+                document.getElementById('nav-site-name').textContent = config.site_name;
+                document.getElementById('footer-site-name').textContent = config.site_name;
+            }
+            
+            if (config.site_title && document.title === '智能招聘平台') {
+                document.title = config.site_title;
+            }
+            
+            if (config.platform_intro) {
+                document.getElementById('footer-intro').textContent = config.platform_intro;
+            }
+            
+            if (config.platform_slogan) {
+                document.getElementById('footer-slogan').innerHTML = '<i class="bi bi-lightbulb"></i> ' + escapeHtml(config.platform_slogan);
+            }
+            
+            let contactHtml = '';
+            if (config.contact_email) {
+                contactHtml += `<a href="mailto:${escapeHtml(config.contact_email)}"><i class="bi bi-envelope"></i> ${escapeHtml(config.contact_email)}</a>`;
+            }
+            if (config.contact_phone) {
+                contactHtml += `<a href="tel:${escapeHtml(config.contact_phone)}"><i class="bi bi-telephone"></i> ${escapeHtml(config.contact_phone)}</a>`;
+            }
+            if (config.business_email) {
+                contactHtml += `<a href="mailto:${escapeHtml(config.business_email)}"><i class="bi bi-briefcase"></i> ${escapeHtml(config.business_email)} (合作)</a>`;
+            }
+            document.getElementById('footer-contact').innerHTML = contactHtml || '<p>暂未设置联系方式</p>';
+            
+            let serviceHtml = '';
+            if (config.service_hours) {
+                serviceHtml += `<p><i class="bi bi-clock"></i> ${escapeHtml(config.service_hours)}</p>`;
+            }
+            serviceHtml += '<p style="cursor: pointer;" onclick="handleHelpCenter()"><i class="bi bi-question-circle"></i> 帮助中心</p>';
+            document.getElementById('footer-service').innerHTML = serviceHtml;
+            
+            if (config.copyright) {
+                document.getElementById('footer-copyright').textContent = config.copyright;
+            }
+            
+            if (config.icp_number) {
+                document.getElementById('footer-icp').innerHTML = `<a href="https://beian.miit.gov.cn/" target="_blank" style="text-decoration:none;color:inherit;"><i class="bi bi-shield-check"></i> ${escapeHtml(config.icp_number)}</a>`;
+            }
+        } catch (error) {
+            console.error('加载系统配置失败:', error);
+        }
+    }
+
+    async function handleHelpCenter() {
+        {% if user %}
+        try {
+            await axios.post('/api/messages/', {
+                receiver_id: 1,
+                content: '你好，我需要帮助'
+            }, { withCredentials: true });
+            
+            sessionStorage.setItem('chatTargetUserId', 1);
+            window.location.href = '/chat';
+        } catch (error) {
+            console.error('发送帮助请求失败:', error);
+            toast.error('发送失败，请稍后再试');
+        }
+        {% else %}
+        window.location.href = '/login';
+        {% endif %}
+    }
+
+    let currentOpenModal = null;
+
+    function openModal(modalId) {
+        const backdrop = document.getElementById('modalBackdrop');
+        const modal = document.getElementById(modalId);
+        if (backdrop) backdrop.classList.add('show');
+        if (modal) {
+            modal.classList.add('show');
+            currentOpenModal = modalId;
+        }
+    }
+
+    function closeModal(modalId) {
+        const backdrop = document.getElementById('modalBackdrop');
+        if (modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('show');
+        } else if (currentOpenModal) {
+            const modal = document.getElementById(currentOpenModal);
+            if (modal) modal.classList.remove('show');
+            currentOpenModal = null;
+        } else {
+            document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+        }
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    function closeAllModals() {
+        const backdrop = document.getElementById('modalBackdrop');
+        document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+        currentOpenModal = null;
+    }
+
+    function showConfirm(title, message, onConfirm) {
+        document.getElementById('confirmModalTitle').textContent = title;
+        document.getElementById('confirmModalBody').textContent = message;
+        document.getElementById('confirmModalBtn').onclick = function() {
+            closeModal();
+            onConfirm();
+        };
+        document.getElementById('modalBackdrop').classList.add('show');
+        document.getElementById('confirmModal').classList.add('show');
+    }
+
+    function formatUTCTime(utcStr) {
+        if (!utcStr) return '';
+        const date = new Date(utcStr + 'Z');
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function formatUTCDate(utcStr) {
+        if (!utcStr) return '';
+        const date = new Date(utcStr + 'Z');
+        return date.toLocaleDateString('zh-CN');
+    }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

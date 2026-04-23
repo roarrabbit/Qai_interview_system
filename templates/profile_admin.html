@@ -1,0 +1,1244 @@
+{% extends "base.html" %}
+
+{% block title %}管理控制台 - 智能招聘平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.admin-layout {
+    display: flex;
+    min-height: calc(100vh - 70px);
+    margin: -1.5rem -12px 0;
+}
+
+.admin-sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, var(--secondary-color) 0%, #78350f 100%);
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.admin-brand {
+    padding: 28px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.admin-brand h3 {
+    color: white;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.admin-brand p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.admin-nav {
+    padding: 16px 0;
+}
+
+.admin-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.admin-nav-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.admin-nav-link.active {
+    background: rgba(255,255,255,0.15);
+    border-left-color: var(--primary-color);
+    color: white;
+}
+
+.admin-nav-link svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.admin-content {
+    flex: 1;
+    padding: 32px;
+    background: var(--bg-secondary);
+    overflow-y: auto;
+}
+
+.section-panel {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.section-body {
+    padding: 24px;
+}
+
+.section-hidden {
+    display: none;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table td {
+    padding: 14px 16px;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr:hover td {
+    background: var(--bg-secondary);
+}
+
+.table-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.config-section {
+    margin-bottom: 32px;
+}
+
+.config-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.config-section-title svg {
+    width: 18px;
+    height: 18px;
+    color: var(--primary-color);
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.config-grid.single {
+    grid-template-columns: 1fr;
+}
+
+.config-item label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.config-item input,
+.config-item textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.config-item input:focus,
+.config-item textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.config-item textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.config-item .hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+}
+
+.switch-label {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: 0.3s;
+    border-radius: 12px;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.switch-input:checked + .switch-slider {
+    background-color: var(--primary-color);
+}
+
+.switch-input:checked + .switch-slider:before {
+    transform: translateX(20px);
+}
+
+.password-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.form-group .hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+}
+
+.action-bar {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.loading-state {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-secondary);
+}
+
+.loading-state svg {
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-secondary);
+}
+
+.empty-state svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .admin-layout {
+        flex-direction: column;
+    }
+    
+    .admin-sidebar {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+    }
+    
+    .admin-nav {
+        display: flex;
+        flex-wrap: nowrap;
+        padding: 8px 0;
+    }
+    
+    .admin-nav-link {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        font-size: 0.875rem;
+    }
+    
+    .admin-content {
+        padding: 16px;
+    }
+    
+    .section-body {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .data-table {
+        min-width: 600px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+        font-size: 0.8125rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <div class="admin-sidebar">
+        <div class="admin-brand">
+            <h3>管理控制台</h3>
+            <p>{{ user.username }}</p>
+        </div>
+        <nav class="admin-nav">
+            <a href="#users" class="admin-nav-link active" data-section="users">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                用户管理
+            </a>
+            <a href="#candidates" class="admin-nav-link" data-section="candidates">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                求职者管理
+            </a>
+            <a href="#hrs" class="admin-nav-link" data-section="hrs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                </svg>
+                招聘者管理
+            </a>
+            <a href="#jobs" class="admin-nav-link" data-section="jobs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+                岗位管理
+            </a>
+            <a href="#config" class="admin-nav-link" data-section="config">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                系统配置
+            </a>
+            <a href="#password" class="admin-nav-link" data-section="password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                修改密码
+            </a>
+        </nav>
+    </div>
+    
+    <div class="admin-content">
+        <div id="section-users" class="content-section">
+            <div class="section-panel">
+                <div class="section-header">
+                    <h3>用户管理</h3>
+                </div>
+                <div class="section-body" id="users-content">
+                    <div class="loading-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="section-candidates" class="content-section section-hidden">
+            <div class="section-panel">
+                <div class="section-header">
+                    <h3>求职者管理</h3>
+                </div>
+                <div class="section-body" id="candidates-content">
+                    <div class="loading-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="section-hrs" class="content-section section-hidden">
+            <div class="section-panel">
+                <div class="section-header">
+                    <h3>招聘者管理</h3>
+                </div>
+                <div class="section-body" id="hrs-content">
+                    <div class="loading-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="section-jobs" class="content-section section-hidden">
+            <div class="section-panel">
+                <div class="section-header">
+                    <h3>岗位管理</h3>
+                </div>
+                <div class="section-body" id="jobs-content">
+                    <div class="loading-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="section-config" class="content-section section-hidden">
+            <div class="section-panel">
+                <div class="section-header">
+                    <h3>系统配置</h3>
+                </div>
+                <div class="section-body" id="config-content">
+                    <div class="loading-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <p>加载中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="section-password" class="content-section section-hidden">
+            <div class="section-panel" style="margin-bottom: 24px;">
+                <div class="section-header">
+                    <h3>修改我的密码</h3>
+                </div>
+                <div class="section-body">
+                    <form id="changeMyPasswordForm">
+                        <div class="password-grid">
+                            <div class="form-group">
+                                <label>旧密码</label>
+                                <input type="password" id="my_old_password" placeholder="请输入旧密码" required>
+                            </div>
+                            <div class="form-group">
+                                <label>新密码</label>
+                                <input type="password" id="my_new_password" placeholder="请输入新密码" required>
+                            </div>
+                            <div class="form-group">
+                                <label>确认新密码</label>
+                                <input type="password" id="my_confirm_password" placeholder="请再次输入新密码" required>
+                            </div>
+                        </div>
+                        <div class="action-bar">
+                            <button type="button" class="btn btn-primary" onclick="changeMyPassword()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;">
+                                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                                    <polyline points="17,21 17,13 7,13 7,21"/>
+                                    <polyline points="7,3 7,8 15,8"/>
+                                </svg>
+                                修改密码
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="section-panel">
+                <div class="section-header">
+                    <h3>修改其他用户密码</h3>
+                    <span class="status-badge status-warning">管理员专用</span>
+                </div>
+                <div class="section-body">
+                    <form id="changeUserPasswordForm">
+                        <div class="password-grid">
+                            <div class="form-group">
+                                <label>用户ID</label>
+                                <input type="number" id="user_id" placeholder="输入用户ID" required>
+                                <div class="hint">在用户管理中查看用户ID</div>
+                            </div>
+                            <div class="form-group">
+                                <label>新密码</label>
+                                <input type="password" id="user_new_password" placeholder="请输入新密码" required>
+                            </div>
+                            <div class="form-group">
+                                <label>确认新密码</label>
+                                <input type="password" id="user_confirm_password" placeholder="请再次输入新密码" required>
+                            </div>
+                        </div>
+                        <div class="action-bar">
+                            <button type="button" class="btn btn-accent" onclick="changeUserPassword()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                </svg>
+                                修改用户密码
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function formatUTCTime(utcTimeStr) {
+    if (!utcTimeStr) return '';
+    const date = new Date(utcTimeStr);
+    return date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+}
+
+const currentUserId = parseInt('{{ user.id }}');
+
+function switchSection(sectionName) {
+    document.querySelectorAll('.admin-nav-link').forEach(l => l.classList.remove('active'));
+    document.querySelector(`.admin-nav-link[data-section="${sectionName}"]`)?.classList.add('active');
+    document.querySelectorAll('.content-section').forEach(s => s.classList.add('section-hidden'));
+    document.getElementById(`section-${sectionName}`)?.classList.remove('section-hidden');
+    
+    if (sectionName === 'users') loadUsers();
+    if (sectionName === 'candidates') loadCandidates();
+    if (sectionName === 'hrs') loadHRs();
+    if (sectionName === 'jobs') loadJobs();
+    if (sectionName === 'config') loadConfig();
+}
+
+document.querySelectorAll('.admin-nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const section = this.dataset.section;
+        window.location.hash = section;
+        switchSection(section);
+    });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.slice(1);
+    const section = hash || 'users';
+    switchSection(section);
+
+    if (hash === 'config') {
+        setTimeout(() => {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }, 100);
+    }
+});
+
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.slice(1);
+    const section = hash || 'users';
+    switchSection(section);
+});
+
+async function loadUsers() {
+    const response = await axios.get('/api/admin/users?limit=50', { withCredentials: true });
+    const data = response.data;
+    
+    let html = `
+        <div style="margin-bottom: 16px;">
+            <span class="text-secondary">共 ${data.total} 个用户</span>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>角色</th>
+                    <th>注册时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    const roleTranslate = {'candidate': '求职者', 'hr': '招聘者', 'admin': '管理员'};
+    data.users.forEach(user => {
+        const createdAt = formatUTCTime(user.created_at);
+        const roleClass = user.role === 'candidate' ? 'status-primary' : user.role === 'hr' ? 'status-success' : 'status-danger';
+        const roleName = roleTranslate[user.role] || user.role;
+        html += `
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td><span class="status-badge ${roleClass}">${roleName}</span></td>
+                <td>${createdAt}</td>
+                <td class="table-actions">
+                    ${user.id !== currentUserId ? `<button class="btn btn-outline btn-sm" onclick="deleteUser(${user.id})">删除</button>` : '<span class="text-secondary">当前用户</span>'}
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('users-content').innerHTML = html;
+}
+
+async function loadJobs() {
+    const response = await axios.get('/api/admin/jobs?limit=50', { withCredentials: true });
+    const data = response.data;
+    
+    let html = `
+        <div style="margin-bottom: 16px;">
+            <span class="text-secondary">共 ${data.total} 个岗位</span>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>标题</th>
+                    <th>地点</th>
+                    <th>薪资</th>
+                    <th>状态</th>
+                    <th>发布时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    data.jobs.forEach(job => {
+        const createdAt = formatUTCTime(job.created_at);
+        html += `
+            <tr>
+                <td>${job.id}</td>
+                <td>${job.title}</td>
+                <td>${job.location || '-'}</td>
+                <td>${job.salary_range || '面议'}</td>
+                <td><span class="status-badge ${job.is_active ? 'status-success' : 'status-secondary'}">${job.is_active ? '活跃' : '关闭'}</span></td>
+                <td>${createdAt}</td>
+                <td class="table-actions">
+                    <button class="btn btn-outline btn-sm" onclick="deleteJob(${job.id})">删除</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('jobs-content').innerHTML = html;
+}
+
+async function loadCandidates() {
+    const response = await axios.get('/api/candidates/all', { withCredentials: true });
+    const candidates = response.data;
+    
+    let html = `
+        <div style="margin-bottom: 16px;">
+            <span class="text-secondary">共 ${candidates.length} 个求职者</span>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>姓名</th>
+                    <th>性别</th>
+                    <th>联系方式</th>
+                    <th>求职意向</th>
+                    <th>状态</th>
+                    <th>技能</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    candidates.forEach(c => {
+        const skills = c.skills ? c.skills.split(',').slice(0, 3).join(', ') : '-';
+        html += `
+            <tr>
+                <td>${c.id}</td>
+                <td>${c.real_name || '未填写'}</td>
+                <td>${c.gender || '-'}</td>
+                <td>${c.phone || c.email || '未填写'}</td>
+                <td>${c.target_job || '未填写'}</td>
+                <td><span class="status-badge status-success">${c.job_status || '求职中'}</span></td>
+                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${skills}</td>
+                <td class="table-actions">
+                    <button class="btn btn-outline btn-sm" onclick="deleteCandidate(${c.id})">删除</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('candidates-content').innerHTML = html;
+}
+
+async function deleteCandidate(candidateId) {
+    if (!confirm('确定要删除此求职者吗？此操作不可恢复！')) return;
+    
+    try {
+        await axios.delete(`/api/admin/candidates/${candidateId}`, { withCredentials: true });
+        toast.success('删除成功');
+        loadCandidates();
+    } catch (error) {
+        toast.error('删除失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function loadHRs() {
+    const response = await axios.get('/api/admin/hrs?limit=50', { withCredentials: true });
+    const hrs = response.data;
+    
+    let html = `
+        <div style="margin-bottom: 16px;">
+            <span class="text-secondary">共 ${hrs.length} 个招聘者</span>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>用户名</th>
+                    <th>公司名称</th>
+                    <th>行业</th>
+                    <th>称呼</th>
+                    <th>联系方式</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    hrs.forEach(hr => {
+        html += `
+            <tr>
+                <td>${hr.id}</td>
+                <td>${hr.user?.username || '未知'}</td>
+                <td>${hr.company_name || '未填写'}</td>
+                <td>${hr.industry || '-'}</td>
+                <td>${hr.contact_person || '-'}</td>
+                <td>${hr.contact_phone || hr.contact_email || '未填写'}</td>
+                <td class="table-actions">
+                    <button class="btn btn-outline btn-sm" onclick="deleteHR(${hr.id})">删除</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('hrs-content').innerHTML = html;
+}
+
+async function deleteHR(hrId) {
+    if (!confirm('确定要删除此招聘者吗？此操作会同时删除其发布的所有岗位！')) return;
+    
+    try {
+        await axios.delete(`/api/admin/hr-profiles/${hrId}`, { withCredentials: true });
+        toast.success('删除成功');
+        loadHRs();
+    } catch (error) {
+        toast.error('删除失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function loadConfig() {
+    const response = await axios.post('/api/admin/config', {}, { withCredentials: true });
+    const configs = response.data;
+    
+    const configMap = {};
+    configs.forEach(c => {
+        configMap[c.config_key] = c.config_value;
+    });
+    
+    let logLevelResponse;
+    try {
+        logLevelResponse = await axios.get('/api/admin/log-level', { withCredentials: true });
+    } catch (e) {
+        console.error('获取日志级别失败', e);
+    }
+    const currentLogLevel = logLevelResponse?.data?.current_level || configMap.log_level || 'INFO';
+    
+    let html = `
+        <div class="config-section">
+            <div class="config-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                基本信息
+            </div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>网站名称</label>
+                    <input type="text" id="config_site_name" value="${escapeHtml(configMap.site_name || '智能招聘平台')}">
+                    <div class="hint">显示在浏览器标题栏和导航栏</div>
+                </div>
+                <div class="config-item">
+                    <label>网站标题</label>
+                    <input type="text" id="config_site_title" value="${escapeHtml(configMap.site_title || '面向计算机行业的智能招聘平台')}">
+                    <div class="hint">显示在首页标题</div>
+                </div>
+            </div>
+            <div class="config-grid single" style="margin-top: 20px;">
+                <div class="config-item">
+                    <label>首页公告</label>
+                    <textarea id="config_homepage_announcement" rows="3">${escapeHtml(configMap.homepage_announcement || '')}</textarea>
+                    <div class="hint">显示在首页公告，为空则不显示</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <div class="config-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                联系方式（显示在首页页脚）
+            </div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>联系邮箱</label>
+                    <input type="email" id="config_contact_email" value="${escapeHtml(configMap.contact_email || '')}" placeholder="contact@example.com">
+                    <div class="hint">为空则不显示</div>
+                </div>
+                <div class="config-item">
+                    <label>联系电话</label>
+                    <input type="text" id="config_contact_phone" value="${escapeHtml(configMap.contact_phone || '')}" placeholder="400-123-4567">
+                    <div class="hint">为空则不显示</div>
+                </div>
+                <div class="config-item">
+                    <label>客服时间</label>
+                    <input type="text" id="config_service_hours" value="${escapeHtml(configMap.service_hours || '')}" placeholder="工作日 9:00-18:00">
+                    <div class="hint">为空则不显示</div>
+                </div>
+                <div class="config-item">
+                    <label>企业邮箱</label>
+                    <input type="email" id="config_business_email" value="${escapeHtml(configMap.business_email || '')}" placeholder="hr@example.com">
+                    <div class="hint">HR合作邮箱，为空则不显示</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <div class="config-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                </svg>
+                页脚信息（显示在首页底部）
+            </div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>版权所有</label>
+                    <input type="text" id="config_copyright" value="${escapeHtml(configMap.copyright || '')}" placeholder="© 2025 智能招聘平台">
+                    <div class="hint">页脚版权信息</div>
+                </div>
+                <div class="config-item">
+                    <label>ICP备案号</label>
+                    <input type="text" id="config_icp_number" value="${escapeHtml(configMap.icp_number || '')}" placeholder="京ICP备12345678号">
+                    <div class="hint">为空则不显示</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <div class="config-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+                </svg>
+                首页特色展示
+            </div>
+            <div class="config-grid single">
+                <div class="config-item">
+                    <label>平台特色标语</label>
+                    <input type="text" id="config_platform_slogan" value="${escapeHtml(configMap.platform_slogan || '')}" placeholder="AI赋能招聘，让每一次匹配都更精准">
+                    
+                </div>
+                <div class="config-item" style="margin-top: 20px;">
+                    <label>平台介绍</label>
+                    <textarea id="config_platform_intro" rows="3">${escapeHtml(configMap.platform_intro || '')}</textarea>
+                    <div class="hint">显示在首页关于部分，为空则不显示</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <div class="config-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                日志配置
+            </div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>日志级别</label>
+                    <select id="config_log_level" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: white;">
+                        <option value="DEBUG" ${currentLogLevel === 'DEBUG' ? 'selected' : ''}>DEBUG - 调试模式（详细日志）</option>
+                        <option value="INFO" ${currentLogLevel === 'INFO' ? 'selected' : ''}>INFO - 信息模式（默认）</option>
+                        <option value="WARNING" ${currentLogLevel === 'WARNING' ? 'selected' : ''}>WARNING - 警告模式</option>
+                        <option value="ERROR" ${currentLogLevel === 'ERROR' ? 'selected' : ''}>ERROR - 错误模式</option>
+                        <option value="CRITICAL" ${currentLogLevel === 'CRITICAL' ? 'selected' : ''}>CRITICAL - 严重错误模式</option>
+                    </select>
+                    <div class="hint">DEBUG会输出详细日志，INFO为正常运行模式</div>
+                </div>
+                <div class="config-item">
+                    <label>当前日志状态</label>
+                    <div style="padding: 10px 12px; background: var(--bg-secondary); border-radius: 8px; font-size: 14px;">
+                        <span id="current_log_level_display" class="status-badge ${currentLogLevel === 'DEBUG' ? 'status-warning' : currentLogLevel === 'ERROR' ? 'status-danger' : 'status-success'}">${currentLogLevel}</span>
+                    </div>
+                    <div class="hint">日志文件位置: logs/ai_interview.log 和 logs/system.log</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <div class="config-section-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="10" rx="2"/>
+                    <circle cx="12" cy="5" r="2"/>
+                    <path d="M12 7v4"/>
+                    <line x1="8" y1="16" x2="8" y2="16"/>
+                    <line x1="16" y1="16" x2="16" y2="16"/>
+                </svg>
+                AI面试配置
+            </div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label>大模型选择</label>
+                    <select id="config_ollama_model" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: white;">
+                        <option value="qwen3.5:9b">qwen3.5:9b</option>
+                        <option value="glm4:latest">glm4:latest</option>
+                        <option value="custom">自定义模型...</option>
+                    </select>
+                    <div class="hint">选择AI面试使用的大语言模型</div>
+                </div>
+                <div class="config-item" id="customModelInput" style="display: none;">
+                    <label>自定义模型名称</label>
+                    <input type="text" id="config_custom_model" placeholder="输入模型名称">
+                    <div class="hint">输入Ollama中的模型名称</div>
+                </div>
+                <div class="config-item">
+                    <label>API地址</label>
+                    <input type="text" id="config_ollama_base_url" value="${escapeHtml(configMap.ollama_base_url || 'http://localhost:11434')}">
+                    <div class="hint">Ollama API服务地址</div>
+                </div>
+                <div class="config-item">
+                    <label>个人AI面试题目数</label>
+                    <input type="number" id="config_personal_interview_questions" value="${escapeHtml(configMap.personal_interview_questions || '5')}" min="3" max="10">
+                    <div class="hint">个人AI面试的问题数量（3-10题）</div>
+                </div>
+                <div class="config-item">
+                    <label>岗位AI面试题目数</label>
+                    <input type="number" id="config_job_interview_questions" value="${escapeHtml(configMap.job_interview_questions || '7')}" min="5" max="15">
+                    <div class="hint">岗位相关AI面试的问题数量（5-15题）</div>
+                </div>
+                <div class="config-item">
+                    <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
+                        <span>思考模式</span>
+                        <label class="switch-label">
+                            <input type="checkbox" id="config_ollama_think_mode" class="switch-input" ${configMap.ollama_no_think !== 'true' ? 'checked' : ''}>
+                            <span class="switch-slider"></span>
+                        </label>
+                    </label>
+                    <div class="hint">关闭时禁用思考过程，开启时启用思考模式</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="action-bar" style="border-top: none; padding-top: 0;">
+            <button class="btn btn-primary" onclick="saveConfig()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;">
+                    <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                    <polyline points="17,21 17,13 7,13 7,21"/>
+                    <polyline points="7,3 7,8 15,8"/>
+                </svg>
+                保存所有配置
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('config-content').innerHTML = html;
+    
+    const predefinedModels = [
+        'qwen3.5:9b', 'qwen2.5:7b', 'qwen2.5:14b', 'qwen3.5:14b',
+        'glm4:latest', 'Maoyue/mistral-nemo-instruct-2407:latest',
+        'hoangquan456/qwen3-nothink:8b', 'qwen3:8b',
+        'llama3.1:8b', 'llama3.1:8b-instruct-q5_K_M'
+    ];
+    
+    const currentModel = configMap.ollama_model || 'qwen3.5:9b';
+    const modelSelect = document.getElementById('config_ollama_model');
+    const customModelInput = document.getElementById('customModelInput');
+    const customModelField = document.getElementById('config_custom_model');
+    
+    if (predefinedModels.includes(currentModel)) {
+        modelSelect.value = currentModel;
+    } else {
+        modelSelect.value = 'custom';
+        customModelField.value = currentModel;
+        customModelInput.style.display = 'block';
+    }
+    
+    modelSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customModelInput.style.display = 'block';
+        } else {
+            customModelInput.style.display = 'none';
+        }
+    });
+}
+
+async function saveConfig() {
+    const modelSelect = document.getElementById('config_ollama_model');
+    let ollamaModel = modelSelect ? modelSelect.value : '';
+    
+    if (ollamaModel === 'custom') {
+        ollamaModel = document.getElementById('config_custom_model')?.value || '';
+    }
+    
+    const thinkModeEnabled = document.getElementById('config_ollama_think_mode')?.checked;
+    
+    const configs = {
+        'site_name': document.getElementById('config_site_name')?.value,
+        'site_title': document.getElementById('config_site_title')?.value,
+        'homepage_announcement': document.getElementById('config_homepage_announcement')?.value,
+        'contact_email': document.getElementById('config_contact_email')?.value,
+        'contact_phone': document.getElementById('config_contact_phone')?.value,
+        'service_hours': document.getElementById('config_service_hours')?.value,
+        'business_email': document.getElementById('config_business_email')?.value,
+        'copyright': document.getElementById('config_copyright')?.value,
+        'icp_number': document.getElementById('config_icp_number')?.value,
+        'platform_slogan': document.getElementById('config_platform_slogan')?.value,
+        'platform_intro': document.getElementById('config_platform_intro')?.value,
+        'log_level': document.getElementById('config_log_level')?.value,
+        'ollama_model': ollamaModel,
+        'ollama_base_url': document.getElementById('config_ollama_base_url')?.value,
+        'ollama_no_think': thinkModeEnabled ? 'false' : 'true',
+        'personal_interview_questions': document.getElementById('config_personal_interview_questions')?.value,
+        'job_interview_questions': document.getElementById('config_job_interview_questions')?.value
+    };
+    
+    try {
+        for (const [key, value] of Object.entries(configs)) {
+            if (value !== undefined && value !== null && value !== '') {
+                await axios.put(`/api/admin/config/${key}`, 
+                    { config_value: value },
+                    { withCredentials: true }
+                );
+            }
+        }
+        
+        toast.success('配置已保存，页面即将刷新');
+        setTimeout(() => { window.location.reload(); }, 1500);
+    } catch (error) {
+        console.error('保存配置失败:', error);
+        toast.error('保存配置失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function deleteUser(userId) {
+    if (!confirm('确定要删除此用户吗？此操作不可恢复！')) return;
+    
+    try {
+        await axios.delete(`/api/admin/users/${userId}`, { withCredentials: true });
+        toast.success('删除成功');
+        loadUsers();
+    } catch (error) {
+        toast.error('删除失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function deleteJob(jobId) {
+    if (!confirm('确定要删除此岗位吗？此操作不可恢复！')) return;
+    
+    try {
+        await axios.delete(`/api/admin/jobs/${jobId}`, { withCredentials: true });
+        toast.success('删除成功');
+        loadJobs();
+    } catch (error) {
+        toast.error('删除失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function changeMyPassword() {
+    const oldPassword = document.getElementById('my_old_password').value;
+    const newPassword = document.getElementById('my_new_password').value;
+    const confirmPassword = document.getElementById('my_confirm_password').value;
+    
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        toast.error('请填写所有字段');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        toast.error('两次输入的新密码不一致');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        toast.error('新密码长度至少6个字符');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('old_password', oldPassword);
+        formData.append('new_password', newPassword);
+        
+        await axios.post('/api/users/change-password', formData, { withCredentials: true });
+        
+        toast.success('密码修改成功，请重新登录');
+        setTimeout(() => {
+            document.cookie = 'access_token=; Max-Age=0; path=/';
+            location.href = '/login';
+        }, 1500);
+    } catch (error) {
+        toast.error('修改失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function changeUserPassword() {
+    const userId = document.getElementById('user_id').value;
+    const newPassword = document.getElementById('user_new_password').value;
+    const confirmPassword = document.getElementById('user_confirm_password').value;
+    
+    if (!userId || !newPassword || !confirmPassword) {
+        toast.error('请填写所有字段');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        toast.error('两次输入的新密码不一致');
+        return;
+    }
+    
+    if (newPassword.length < 8 || newPassword.length > 128) {
+        toast.error('新密码强度不足');
+        return;
+    }
+    
+    if (!/[A-Za-z]/.test(newPassword)) {
+        toast.error('新密码强度不足：必须包含字母');
+        return;
+    }
+    
+    if (!/[0-9]/.test(newPassword)) {
+        toast.error('新密码强度不足：必须包含数字');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('new_password', newPassword);
+        
+        await axios.post(`/api/admin/users/${userId}/change-password`, formData, { withCredentials: true });
+        
+        toast.success('用户密码修改成功');
+        document.getElementById('changeUserPasswordForm').reset();
+    } catch (error) {
+        toast.error('修改失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+</script>
+{% endblock %}

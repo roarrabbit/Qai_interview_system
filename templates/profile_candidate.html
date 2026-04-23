@@ -1,0 +1,1070 @@
+{% extends "base.html" %}
+
+{% block title %}个人中心 - 智能招聘平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-layout {
+    display: flex;
+    min-height: calc(100vh - 72px);
+    margin-top: 0;
+}
+
+.profile-sidebar {
+    width: 240px;
+    background: linear-gradient(180deg, var(--secondary-color) 0%, #78350f 100%);
+    padding: 0;
+    color: white;
+    flex-shrink: 0;
+    position: sticky;
+    top: 72px;
+    height: calc(100vh - 72px);
+    overflow-y: auto;
+}
+
+.profile-sidebar .brand {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.profile-sidebar .brand h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.profile-sidebar .brand small {
+    opacity: 0.7;
+    font-size: 0.85rem;
+}
+
+.profile-nav {
+    padding: 1rem 0;
+}
+
+.profile-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.profile-nav a:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.profile-nav a.active {
+    background: rgba(255,255,255,0.15);
+    border-left-color: var(--primary-color);
+    color: white;
+}
+
+.profile-nav a i {
+    width: 20px;
+    text-align: center;
+}
+
+.profile-content {
+    flex: 1;
+    padding: 2rem;
+    background: var(--bg-light);
+    overflow-y: auto;
+    max-width: calc(100% - 240px);
+}
+
+.welcome-banner {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    color: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.welcome-banner h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.welcome-banner p {
+    opacity: 0.9;
+    margin: 0;
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.welcome-stat {
+    text-align: center;
+}
+
+.welcome-stat .num {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.welcome-stat .label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.section-panel {
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.section-panel h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.info-item {
+    padding: 0.5rem 0;
+}
+
+.info-item .label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.info-item .value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.section-hidden {
+    display: none;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.form-grid .full-width {
+    grid-column: span 2;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: var(--bg-light);
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr:hover {
+    background: var(--bg-light);
+}
+
+.empty-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+    .profile-layout {
+        flex-direction: column;
+    }
+    .profile-sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+    }
+    .profile-content {
+        max-width: 100%;
+        padding: 1rem;
+    }
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-grid .full-width {
+        grid-column: span 1;
+    }
+    .welcome-stats {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+    <div class="profile-sidebar">
+        <div class="brand">
+            <h5><i class="bi bi-person-circle" style="margin-right: 0.5rem;"></i>个人中心</h5>
+            <small>{{ user.username }}</small>
+        </div>
+        <nav class="profile-nav">
+            <a href="#profile" data-section="profile" class="active"><i class="bi bi-person"></i> 个人信息</a>
+            <a href="#applications" data-section="applications"><i class="bi bi-file-earmark-text"></i> 我的申请</a>
+            <a href="#interviews" data-section="interviews"><i class="bi bi-robot"></i> AI面试</a>
+            <a href="#password" data-section="password"><i class="bi bi-key"></i> 修改密码</a>
+        </nav>
+    </div>
+    
+    <div class="profile-content">
+        <div class="welcome-banner">
+            <div>
+                <h2>你好！{{ candidate.real_name or user.username }}</h2>
+                <p><i class="bi bi-briefcase" style="margin-right: 0.5rem;"></i>{{ candidate.target_job or '待完善求职意向' }}</p>
+            </div>
+            <div class="welcome-stats">
+                <div class="welcome-stat">
+                    <div class="num">{{ applications|length }}</div>
+                    <div class="label">投递申请</div>
+                </div>
+                <div class="welcome-stat">
+                    <div class="num">{{ interviews|length }}</div>
+                    <div class="label">AI面试</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="section-profile" class="content-section">
+            <div class="section-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                    <h4 style="margin: 0; border: none; padding: 0;">个人信息</h4>
+                    <button class="btn btn-primary" onclick="openModal('editProfileModal')">
+                        <i class="bi bi-pencil" style="margin-right: 0.5rem;"></i>编辑信息
+                    </button>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label">用户名</div>
+                        <div class="value">{{ user.username }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">真实姓名</div>
+                        <div class="value">{{ candidate.real_name or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">性别</div>
+                        <div class="value">{{ candidate.gender or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">出生日期</div>
+                        <div class="value">{{ candidate.birth_date or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">电话</div>
+                        <div class="value">{{ candidate.phone or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">邮箱</div>
+                        <div class="value">{{ candidate.email or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">学历</div>
+                        <div class="value">{{ candidate.education or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">专业</div>
+                        <div class="value">{{ candidate.major or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">工作经验</div>
+                        <div class="value">{{ candidate.work_experience or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">求职意向</div>
+                        <div class="value">{{ candidate.target_job or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">期望薪资</div>
+                        <div class="value">{{ candidate.expected_salary or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">求职状态</div>
+                        <div class="value">
+                            <span class="status-badge status-{{ 'success' if candidate.job_status == '求职中' else 'warning' }}">
+                                {{ candidate.job_status or '求职中' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <div class="info-item">
+                        <div class="label">技能标签</div>
+                        <div class="skills-list">
+                            {% if candidate.skills %}
+                                {% for skill in candidate.skills.replace('、', ',').replace('，', ',').split(',') %}
+                                <span class="skill-tag">{{ skill.strip() }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span style="color: var(--text-muted);">未填写</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <div class="info-item">
+                        <div class="label">经验摘要</div>
+                        <div class="value">{{ candidate.experience_summary or '未填写' }}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <div class="info-item">
+                        <div class="label">个人简介</div>
+                        <div class="value">{{ candidate.self_introduction or '未填写' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="section-applications" class="content-section section-hidden">
+            <div class="section-panel">
+                <h4>我的申请</h4>
+                {% if applications %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>职位</th>
+                            <th>状态</th>
+                            <th>申请时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr>
+                            <td><a href="/jobs/{{ app.job.id }}" style="color: var(--primary-color); text-decoration: none;">{{ app.job.title }}</a></td>
+                            <td>
+                                <span class="status-badge status-{{ 
+                                    'success' if app.status == '成功入职' else 
+                                    'info' if app.status == '线下面试' else 
+                                    'accent' if app.status == '面试邀约' else 
+                                    'danger' if app.status == '已拒绝' else 'warning' 
+                                }}">
+                                    {{ app.status|translate_application_status }}
+                                </span>
+                            </td>
+                            <td>{{ app.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <button onclick="viewJobDetail({{ app.job.id }}, '{{ app.id }}')" class="btn btn-sm btn-outline">
+                                        <i class="bi bi-eye"></i> 查看
+                                    </button>
+                                    
+                                    {% if app.status == '面试邀约' %}
+                                    <button onclick="confirmInterview('{{ app.id }}')" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-check-circle"></i> 确认面试
+                                    </button>
+                                    {% endif %}
+                                    
+                                    {% if app.status == '线下面试' and app.offer_sent %}
+                                    <button onclick="acceptOffer('{{ app.id }}')" class="btn btn-sm btn-accent">
+                                        <i class="bi bi-check-circle"></i> 接受入职
+                                    </button>
+                                    {% endif %}
+                                    
+                                    {% if app.status in ['线下面试', '面试邀约', '成功入职'] %}
+                                    <a href="/chat?user_id={{ app.job.hr.user_id }}" class="btn btn-sm btn-accent">
+                                        <i class="bi bi-chat-dots"></i> 联系HR
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-message">暂无申请记录</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div id="section-interviews" class="content-section section-hidden">
+            <div class="section-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                    <h4 style="margin: 0; border: none; padding: 0;">AI面试记录</h4>
+                    <button class="btn btn-accent" onclick="openModal('startInterviewModal')">
+                        <i class="bi bi-plus-circle" style="margin-right: 0.5rem;"></i>开始新面试
+                    </button>
+                </div>
+                
+                {% if interviews %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>面试类型</th>
+                            <th>状态</th>
+                            <th>开始时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for interview in interviews %}
+                        <tr>
+                            <td>{{ interview.interview_type or '未指定' }}</td>
+                            <td>
+                                <span class="status-badge status-{{ 'success' if interview.status == 'completed' or interview.status == '完成' else 'warning' }}">
+                                    {{ '完成' if interview.status == 'completed' else interview.status }}
+                                </span>
+                            </td>
+                            <td>{{ interview.started_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    {% if interview.status == 'in_progress' or interview.status == '进行中' %}
+                                    <a href="/interview/{{ interview.id }}" class="btn btn-sm btn-primary">继续面试</a>
+                                    {% else %}
+                                    <a href="/interview/{{ interview.id }}/report" class="btn btn-sm btn-outline">查看报告</a>
+                                    {% endif %}
+                                    <button onclick="deleteInterview({{ interview.id }})" class="btn btn-sm btn-outline" style="color: var(--danger-color);">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-message">暂无面试记录</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div id="section-password" class="content-section section-hidden">
+            <div class="section-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color);">
+                    <h4 style="margin: 0; border: none; padding: 0;">修改密码</h4>
+                    <button onclick="sendHelpMessage()" class="btn btn-sm btn-outline">
+                        <i class="bi bi-question-circle" style="margin-right: 0.5rem;"></i>寻求帮助
+                    </button>
+                </div>
+                
+                <form id="changePasswordForm" style="max-width: 400px;">
+                    <div class="form-group">
+                        <label class="form-label">旧密码</label>
+                        <input type="password" class="form-control" id="old_password" required placeholder="请输入您的旧密码">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">新密码</label>
+                        <input type="password" class="form-control" id="new_password" required placeholder="请输入您的新密码">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">确认新密码</label>
+                        <input type="password" class="form-control" id="confirm_password" required placeholder="请再次输入新密码以确认">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="changePassword()">
+                        <i class="bi bi-save" style="margin-right: 0.5rem;"></i>修改密码
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="editProfileModal">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3>编辑个人信息</h3>
+            <button class="modal-close" onclick="closeModal('editProfileModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editProfileForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">真实姓名 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="real_name" value="{{ candidate.real_name or '' }}" placeholder="请输入真实姓名">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">性别</label>
+                        <select class="form-control" id="gender">
+                            <option value="">请选择</option>
+                            <option value="男" {{ 'selected' if candidate.gender == '男' else '' }}>男</option>
+                            <option value="女" {{ 'selected' if candidate.gender == '女' else '' }}>女</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">出生日期</label>
+                        <input type="date" class="form-control" id="birth_date" value="{{ candidate.birth_date or '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">联系电话 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="phone" value="{{ candidate.phone or '' }}" placeholder="13800138000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">电子邮箱 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="email" class="form-control" id="email" value="{{ candidate.email or '' }}" placeholder="example@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">学历</label>
+                        <select class="form-control" id="education">
+                            <option value="">请选择</option>
+                            <option value="高中及以下" {{ 'selected' if candidate.education == '高中及以下' else '' }}>高中及以下</option>
+                            <option value="专科" {{ 'selected' if candidate.education == '专科' else '' }}>专科</option>
+                            <option value="本科" {{ 'selected' if candidate.education == '本科' else '' }}>本科</option>
+                            <option value="硕士" {{ 'selected' if candidate.education == '硕士' else '' }}>硕士</option>
+                            <option value="博士" {{ 'selected' if candidate.education == '博士' else '' }}>博士</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">专业</label>
+                        <input type="text" class="form-control" id="major" value="{{ candidate.major or '' }}" placeholder="计算机科学与技术">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">工作经验</label>
+                        <select class="form-control" id="work_experience">
+                            <option value="">请选择</option>
+                            <option value="应届生" {{ 'selected' if candidate.work_experience == '应届生' else '' }}>应届生</option>
+                            <option value="1年以内" {{ 'selected' if candidate.work_experience == '1年以内' else '' }}>1年以内</option>
+                            <option value="1-3年" {{ 'selected' if candidate.work_experience == '1-3年' else '' }}>1-3年</option>
+                            <option value="3-5年" {{ 'selected' if candidate.work_experience == '3-5年' else '' }}>3-5年</option>
+                            <option value="5-10年" {{ 'selected' if candidate.work_experience == '5-10年' else '' }}>5-10年</option>
+                            <option value="10年以上" {{ 'selected' if candidate.work_experience == '10年以上' else '' }}>10年以上</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">求职意向 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="target_job" value="{{ candidate.target_job or '' }}" placeholder="Python后端开发工程师">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">期望薪资</label>
+                        <input type="text" class="form-control" id="expected_salary" value="{{ candidate.expected_salary or '' }}" placeholder="15-20K">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">求职状态</label>
+                        <select class="form-control" id="job_status">
+                            <option value="求职中" {{ 'selected' if candidate.job_status == '求职中' else '' }}>求职中</option>
+                            <option value="观望中" {{ 'selected' if candidate.job_status == '观望中' else '' }}>观望中</option>
+                            <option value="已有工作" {{ 'selected' if candidate.job_status == '已有工作' else '' }}>已有工作</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">技能标签</label>
+                        <input type="text" class="form-control" id="skills" value="{{ candidate.skills or '' }}" placeholder="Python、Django、MySQL、Redis">
+                        <small style="color: var(--text-muted);">多个技能可用逗号或顿号分隔</small>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">经验摘要</label>
+                        <textarea class="form-control" id="experience_summary" rows="3" placeholder="请简要描述您的工作经验和项目经历">{{ candidate.experience_summary or '' }}</textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">个人简介</label>
+                        <textarea class="form-control" id="self_introduction" rows="3" placeholder="请简要介绍您自己，包括性格、爱好等">{{ candidate.self_introduction or '' }}</textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('editProfileModal')">取消</button>
+            <button class="btn btn-primary" onclick="saveProfile()">保存</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="startInterviewModal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>开始AI面试</h3>
+            <button class="modal-close" onclick="closeModal('startInterviewModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">选择面试难度</label>
+                <select class="form-control" id="interview_difficulty">
+                    <option value="初级">初级</option>
+                    <option value="中级" selected>中级</option>
+                    <option value="高级">高级</option>
+                </select>
+                <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                    <i class="bi bi-info-circle" style="margin-right: 0.25rem;"></i>
+                    AI面试官将与您进行自然对话，模拟真实面试场景
+                </small>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('startInterviewModal')">取消</button>
+            <button class="btn btn-primary" onclick="startInterview()">开始面试</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="jobDetailModal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3>岗位详情</h3>
+            <button class="modal-close" onclick="closeModal('jobDetailModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="jobDetailBody">
+            <div style="text-align: center; padding: 3rem;">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchSection(sectionName) {
+    document.querySelectorAll('.profile-nav a').forEach(l => l.classList.remove('active'));
+    document.querySelector(`.profile-nav a[data-section="${sectionName}"]`)?.classList.add('active');
+    document.querySelectorAll('.content-section').forEach(s => s.classList.add('section-hidden'));
+    document.getElementById(`section-${sectionName}`)?.classList.remove('section-hidden');
+}
+
+document.querySelectorAll('.profile-nav a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const section = this.dataset.section;
+        window.location.hash = section;
+        switchSection(section);
+    });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.slice(1);
+    const section = hash || 'profile';
+    switchSection(section);
+});
+
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.slice(1);
+    const section = hash || 'profile';
+    switchSection(section);
+});
+
+async function saveProfile() {
+    const getValueOrNull = (id) => {
+        const value = document.getElementById(id).value;
+        return value.trim() === '' ? null : value;
+    };
+    
+    const data = {
+        real_name: getValueOrNull('real_name'),
+        gender: getValueOrNull('gender'),
+        birth_date: getValueOrNull('birth_date'),
+        phone: getValueOrNull('phone'),
+        email: getValueOrNull('email'),
+        education: getValueOrNull('education'),
+        major: getValueOrNull('major'),
+        work_experience: getValueOrNull('work_experience'),
+        target_job: getValueOrNull('target_job'),
+        expected_salary: getValueOrNull('expected_salary'),
+        job_status: getValueOrNull('job_status'),
+        skills: getValueOrNull('skills'),
+        experience_summary: getValueOrNull('experience_summary'),
+        self_introduction: getValueOrNull('self_introduction')
+    };
+    
+    try {
+        await axios.put('/api/users/candidate/profile', data, { withCredentials: true });
+        toast.success('保存成功');
+        setTimeout(() => location.reload(), 1000);
+    } catch (error) {
+        console.error('保存失败:', error);
+        let errorMsg = '未知错误';
+        if (error.response?.data) {
+            if (typeof error.response.data === 'string') {
+                errorMsg = error.response.data;
+            } else if (error.response.data.detail) {
+                if (Array.isArray(error.response.data.detail)) {
+                    errorMsg = error.response.data.detail.map(err => {
+                        const field = err.loc ? err.loc[err.loc.length - 1] : '字段';
+                        return `${field}: ${err.msg}`;
+                    }).join('; ');
+                } else {
+                    errorMsg = error.response.data.detail;
+                }
+            }
+        } else if (error.message) {
+            errorMsg = error.message;
+        }
+        toast.error('保存失败：' + errorMsg);
+    }
+}
+
+async function startInterview() {
+    const difficulty = document.getElementById('interview_difficulty').value;
+    const btn = document.querySelector('#startInterviewModal .btn-primary');
+    const originalText = btn.textContent;
+    
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; margin-right: 0.5rem;"></span>正在准备面试...';
+        
+        closeModal('startInterviewModal');
+        showLoadingProgress();
+        
+        const response = await axios.post('/api/interviews/', {
+            interview_type: difficulty,
+            job_id: null
+        }, {
+            withCredentials: true,
+            timeout: 200000
+        });
+        
+        hideLoadingProgress();
+        toast.success('面试创建成功！正在跳转...');
+        
+        setTimeout(() => {
+            location.href = `/interview/${response.data.id}`;
+        }, 500);
+    } catch (error) {
+        hideLoadingProgress();
+        btn.disabled = false;
+        btn.textContent = originalText;
+        
+        let errorMsg = '创建面试失败';
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+            errorMsg = 'AI服务响应超时，请检查Ollama服务是否正常运行';
+        } else if (error.response?.status === 401) {
+            errorMsg = '请先登录';
+            setTimeout(() => location.href = '/login', 1000);
+        } else if (error.response?.data?.detail) {
+            errorMsg = error.response.data.detail;
+        }
+        
+        toast.error(errorMsg);
+    }
+}
+
+function showLoadingProgress() {
+    const overlay = document.createElement('div');
+    overlay.id = 'ai-loading-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    `;
+    
+    const loadingBox = document.createElement('div');
+    loadingBox.style.cssText = `
+        background: white;
+        padding: 2rem 2.5rem;
+        border-radius: var(--radius-lg);
+        text-align: center;
+        max-width: 400px;
+    `;
+    
+    loadingBox.innerHTML = `
+        <div style="margin-bottom: 1rem;">
+            <i class="bi bi-robot" style="font-size: 48px; color: var(--primary-color);"></i>
+        </div>
+        <h5 style="margin-bottom: 1rem;">AI面试官正在准备中</h5>
+        <div class="progress" style="height: 8px; margin-bottom: 1rem;">
+            <div class="progress-bar" style="width: 0%;" id="ai-progress-bar"></div>
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 0.5rem; font-size: 0.9rem;" id="ai-progress-text">正在分析您的技能背景...</p>
+        <p style="color: var(--warning-color); margin: 0; font-size: 0.85rem;">
+            <i class="bi bi-exclamation-triangle" style="margin-right: 0.25rem;"></i>
+            正在生成问题，请耐心等待，不要刷新页面
+        </p>
+    `;
+    
+    overlay.appendChild(loadingBox);
+    document.body.appendChild(overlay);
+    
+    let progress = 0;
+    const messages = [
+        '正在分析您的技能背景...',
+        'AI正在生成面试问题',
+        '正在优化问题难度...',
+        '正在完善问题细节...',
+        '即将完成，请稍候...'
+    ];
+    
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 15 + 5;
+        if (progress > 90) progress = 90;
+        
+        const progressBar = document.getElementById('ai-progress-bar');
+        const progressText = document.getElementById('ai-progress-text');
+        
+        if (progressBar) {
+            progressBar.style.width = progress + '%';
+        }
+        
+        if (progressText) {
+            const messageIndex = Math.min(Math.floor(progress / 25), messages.length - 1);
+            progressText.textContent = messages[messageIndex];
+        }
+    }, 1500);
+    
+    overlay.dataset.intervalId = progressInterval;
+}
+
+function hideLoadingProgress() {
+    const overlay = document.getElementById('ai-loading-overlay');
+    if (overlay) {
+        const intervalId = overlay.dataset.intervalId;
+        if (intervalId) {
+            clearInterval(parseInt(intervalId));
+        }
+        
+        const progressBar = document.getElementById('ai-progress-bar');
+        const progressText = document.getElementById('ai-progress-text');
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressText) progressText.textContent = '准备完成！';
+        
+        setTimeout(() => overlay.remove(), 300);
+    }
+}
+
+async function changePassword() {
+    const oldPassword = document.getElementById('old_password').value;
+    const newPassword = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        toast.error('请填写所有字段');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        toast.error('两次输入的新密码不一致');
+        return;
+    }
+    
+    if (newPassword.length < 8 || newPassword.length > 128) {
+        toast.error('新密码强度不足');
+        return;
+    }
+    
+    if (!/[A-Za-z]/.test(newPassword)) {
+        toast.error('新密码强度不足：必须包含字母');
+        return;
+    }
+    
+    if (!/[0-9]/.test(newPassword)) {
+        toast.error('新密码强度不足：必须包含数字');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('old_password', oldPassword);
+        formData.append('new_password', newPassword);
+        
+        await axios.post('/api/users/change-password', formData, { withCredentials: true });
+        
+        toast.success('密码修改成功！请重新登录');
+        setTimeout(() => {
+            document.cookie = 'access_token=; Max-Age=0; path=/';
+            location.href = '/login';
+        }, 1500);
+    } catch (error) {
+        toast.error('修改失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function viewJobDetail(jobId, appId = null) {
+    openModal('jobDetailModal');
+    
+    try {
+        const response = await axios.get(`/api/jobs/${jobId}`, { withCredentials: true });
+        const job = response.data;
+        let applicationDetail = null;
+        
+        if (appId) {
+            try {
+                const appResponse = await axios.get(`/api/applications/${appId}`, { withCredentials: true });
+                applicationDetail = appResponse.data;
+            } catch (appError) {
+                console.error('获取申请详情失败:', appError);
+            }
+        }
+        
+        let html = `
+            <div style="margin-bottom: 1.5rem;">
+                <div style="margin-bottom: 1rem;">
+                    <span class="badge badge-accent" style="font-size: 0.9rem;">
+                        <i class="bi bi-building" style="margin-right: 0.25rem;"></i>${escapeHtml(job.hr?.company_name || '未知公司')}
+                    </span>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                    <span><i class="bi bi-geo-alt" style="margin-right: 0.25rem; color: var(--primary-color);"></i>${escapeHtml(job.location)}</span>
+                    <span><i class="bi bi-cash" style="margin-right: 0.25rem; color: var(--primary-color);"></i>${escapeHtml(job.salary_range)}</span>
+                    <span><i class="bi bi-clock-history" style="margin-right: 0.25rem; color: var(--primary-color);"></i>${formatUTCDate(job.created_at)}</span>
+                </div>
+                
+                ${job.required_skills ? `
+                <div style="margin-bottom: 1.5rem;">
+                    <strong style="display: block; margin-bottom: 0.5rem;">技能要求</strong>
+                    <div>
+                        ${job.required_skills.split(',').map(skill => 
+                            `<span class="skill-tag">${escapeHtml(skill.trim())}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <strong style="display: block; margin-bottom: 0.5rem;">职位描述</strong>
+                    <p style="color: var(--text-muted); line-height: 1.6;">${escapeHtml(job.description)}</p>
+                </div>
+        `;
+        
+        if (applicationDetail && ['面试邀约', '线下面试'].includes(applicationDetail.status)) {
+            html += `
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1.5rem;">
+                    <h4 style="color: var(--primary-color); margin-bottom: 1rem;">
+                        <i class="bi bi-calendar-check" style="margin-right: 0.5rem;"></i>面试详情
+                    </h4>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        ${applicationDetail.interview_time ? `
+                        <div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">面试时间</div>
+                            <div style="font-weight: 500;">${formatUTCTime(applicationDetail.interview_time)}</div>
+                        </div>
+                        ` : ''}
+                        
+                        ${applicationDetail.interview_location ? `
+                        <div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">面试地点</div>
+                            <div style="font-weight: 500;">${escapeHtml(applicationDetail.interview_location)}</div>
+                        </div>
+                        ` : ''}
+                        
+                        ${applicationDetail.interviewer_info ? `
+                        <div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">面试官信息</div>
+                            <div style="font-weight: 500;">${escapeHtml(applicationDetail.interviewer_info)}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${applicationDetail.interview_notes ? `
+                    <div style="margin-top: 1rem;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">面试备注</div>
+                        <div style="white-space: pre-wrap; background: var(--bg-light); padding: 0.75rem; border-radius: var(--radius-sm); margin-top: 0.5rem;">${escapeHtml(applicationDetail.interview_notes)}</div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        html += `</div>`;
+        
+        document.getElementById('jobDetailBody').innerHTML = html;
+    } catch (error) {
+        console.error('加载岗位详情失败:', error);
+        document.getElementById('jobDetailBody').innerHTML = '<div class="alert alert-error">加载失败</div>';
+    }
+}
+
+async function confirmInterview(appId) {
+    try {
+        await axios.post(`/api/applications/${appId}/confirm-interview`, {}, { withCredentials: true });
+        toast.success('面试已确认');
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error('确认面试失败:', error);
+        toast.error('确认失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function acceptOffer(appId) {
+    try {
+        await axios.post(`/api/applications/${appId}/accept-offer`, {}, { withCredentials: true });
+        toast.success('已成功接受入职邀请');
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error('接受入职失败:', error);
+        toast.error('操作失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function deleteInterview(interviewId) {
+    try {
+        await axios.delete(`/api/interviews/${interviewId}`, { withCredentials: true });
+        toast.success('面试记录已删除');
+        setTimeout(() => window.location.reload(), 500);
+    } catch (error) {
+        console.error('删除面试失败:', error);
+        toast.error('删除失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function sendHelpMessage() {
+    try {
+        await axios.post('/api/messages/', {
+            receiver_id: 1,
+            content: '您好，我在修改密码时遇到了问题，需要帮助。'
+        }, { withCredentials: true });
+        
+        sessionStorage.setItem('chatTargetUserId', 1);
+        window.location.href = '/chat';
+    } catch (error) {
+        console.error('发送消息失败:', error);
+        toast.error('发送消息失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+</script>
+{% endblock %}

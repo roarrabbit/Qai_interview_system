@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 智能招聘平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, #fffefa 0%, #ffe5d6 40%,#ffc8d5f6 80%);
+        background-size: 200% 200%;
+        transition: background-position 0.5s ease;
+    }
+    
+    .hero-section {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .section {
+        position: relative;
+        z-index: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">AI驱动的<span>智能招聘</span>平台</h1>
+        <p class="hero-subtitle">精准匹配 · 高效面试 · 智能推荐</p>
+        <div class="hero-actions">
+            <a href="/jobs" class="btn btn-primary btn-lg">
+                <i class="bi bi-search"></i>
+                浏览岗位
+            </a>
+            {% if not user %}
+            <a href="/register" class="btn btn-primary btn-lg">
+                <i class="bi bi-person-plus"></i>
+                立即注册
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number" id="stat-jobs">0</div>
+            <div class="stat-label">在招职位</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat-candidates">0</div>
+            <div class="stat-label">求职者</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat-applications">0</div>
+            <div class="stat-label">在线申请</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="stat-interviews">0</div>
+            <div class="stat-label">AI面试</div>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="background-color: var(--bg-white);">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">AI面试特色功能</h2>
+            <p class="section-subtitle">智能化招聘流程，提升招聘效率</p>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h3 class="feature-title">智能问题生成</h3>
+                <p class="feature-desc">基于岗位要求和候选人背景，AI自动生成个性化面试问题，全面评估候选人能力</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background-color: var(--accent-light);">
+                    <i class="bi bi-graph-up-arrow" style="color: var(--accent-color);"></i>
+                </div>
+                <h3 class="feature-title">多维度评分</h3>
+                <p class="feature-desc">从专业能力、沟通表达、团队协作等6个维度进行评分，生成可视化雷达图</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background-color: rgba(16, 185, 129, 0.1);">
+                    <i class="bi bi-lightning-charge" style="color: #10b981;"></i>
+                </div>
+                <h3 class="feature-title">快速生成报告</h3>
+                <p class="feature-desc">面试结束后生成详细评估报告，包含综合评价、优势分析和改进建议</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="announcementSection" style="display: none; background-color: var(--primary-color); color: white; padding: 20px 24px;">
+    <div class="container">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <i class="bi bi-megaphone" style="font-size: 24px;"></i>
+            <div>
+                <h5 style="margin-bottom: 4px; font-weight: 600;">平台公告</h5>
+                <p id="announcementText" style="margin: 0; opacity: 0.9;"></p>
+            </div>
+        </div>
+    </div>
+</div>
+<section class="section">
+    <div class="container">
+        <div class="content-card-header" style="border-bottom: none; padding-bottom: 0; margin-bottom: 24px;">
+            <div>
+                <h2 class="section-title" style="text-align: left; margin-bottom: 8px;">智能推荐岗位</h2>
+                <p class="section-subtitle" style="text-align: left; margin: 0;">基于AI算法为您精准匹配合适岗位</p>
+            </div>
+            <a href="/jobs" class="btn btn-outline" style="background-color: white;">
+                查看更多
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div id="recommendedJobsList">
+            <div class="empty-state">
+                <div class="loading-spinner"></div>
+                <p class="empty-state-title" style="margin-top: 20px;">正在加载推荐岗位...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<div class="modal" id="jobModal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h5 class="modal-title" id="jobModalTitle">岗位详情</h5>
+            <button class="modal-close" onclick="closeJobModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="jobModalBody">
+            <div style="text-align: center; padding: 40px;">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        <div class="modal-footer" id="jobModalFooter"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadStatistics() {
+    try {
+        const response = await axios.post('/api/system/stats', {}, { withCredentials: true });
+        const stats = response.data;
+        
+        document.getElementById('stat-jobs').textContent = stats.total_jobs;
+        document.getElementById('stat-candidates').textContent = stats.total_candidates;
+        document.getElementById('stat-applications').textContent = stats.total_applications;
+        document.getElementById('stat-interviews').textContent = stats.total_interviews;
+    } catch (error) {
+        console.error('加载统计数据失败:', error);
+    }
+}
+
+async function loadRecommendedJobs() {
+    try {
+        const response = await axios.get('/api/jobs/recommendations', { withCredentials: true });
+        const jobs = response.data;
+        renderJobs(jobs);
+    } catch (error) {
+        loadLatestJobs();
+    }
+}
+
+async function loadLatestJobs() {
+    try {
+        const response = await axios.get('/api/jobs/?limit=4', { withCredentials: true });
+        const jobs = response.data;
+        renderJobs(jobs.map(job => ({ job })));
+    } catch (error) {
+        document.getElementById('recommendedJobsList').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+                <p class="empty-state-title">暂无岗位</p>
+            </div>
+        `;
+    }
+}
+
+function renderJobs(jobs) {
+    if (jobs.length === 0) {
+        document.getElementById('recommendedJobsList').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+                <p class="empty-state-title">暂无推荐岗位</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">' + jobs.map(rec => {
+        const job = rec.job;
+        const skills = (job.required_skills || '').split(',').slice(0, 4);
+        return `
+            <div class="job-card" onclick="viewJobDetail(${job.id})">
+                <div class="job-card-header">
+                    <div>
+                        <h3 class="job-title">${escapeHtml(job.title)}</h3>
+                        <p class="job-company">${escapeHtml(job.hr?.company_name || '未知公司')}</p>
+                    </div>
+                    <div class="job-salary">${escapeHtml(job.salary_range)}</div>
+                </div>
+                <div class="job-meta">
+                    <span class="job-meta-item"><i class="bi bi-geo-alt"></i> ${escapeHtml(job.location)}</span>
+                    ${job.hiring_count ? `<span class="job-meta-item"><i class="bi bi-people"></i> 招聘${job.hiring_count}人</span>` : ''}
+                </div>
+                <div class="job-tags">
+                    ${skills.map(skill => `<span class="skill-tag primary">${escapeHtml(skill.trim())}</span>`).join('')}
+                </div>
+            </div>
+        `;
+    }).join('') + '</div>';
+    
+    document.getElementById('recommendedJobsList').innerHTML = html;
+}
+
+async function viewJobDetail(jobId) {
+    openModal('jobModal');
+    
+    try {
+        const response = await axios.get(`/api/jobs/${jobId}`, { withCredentials: true });
+        const job = response.data;
+        
+        document.getElementById('jobModalTitle').textContent = job.title;
+        document.getElementById('jobModalBody').innerHTML = `
+            <div style="margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">公司</p>
+                        <p style="font-weight: 500;"><i class="bi bi-building" style="color: var(--primary-color); margin-right: 8px;"></i>${escapeHtml(job.hr?.company_name || '未知公司')}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">薪资范围</p>
+                        <p style="font-weight: 500; color: var(--primary-color);"><i class="bi bi-cash" style="margin-right: 8px;"></i>${escapeHtml(job.salary_range)}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">工作地点</p>
+                        <p style="font-weight: 500;"><i class="bi bi-geo-alt" style="color: var(--accent-color); margin-right: 8px;"></i>${escapeHtml(job.location)}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">工作经验</p>
+                        <p style="font-weight: 500;">${escapeHtml(job.work_experience || '不限')}</p>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">岗位描述</h4>
+                    <p style="color: var(--text-secondary); line-height: 1.7;">${escapeHtml(job.description || '-')}</p>
+                </div>
+                
+                ${job.required_skills ? `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">技能要求</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${job.required_skills.split(',').map(skill => `<span class="skill-tag primary">${escapeHtml(skill.trim())}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div>
+                    <p style="font-size: 13px; color: var(--text-muted);">发布时间：${formatUTCDate(job.created_at)}</p>
+                </div>
+            </div>
+        `;
+        
+        {% if not user %}
+        document.getElementById('jobModalFooter').innerHTML = `
+            <p style="color: var(--text-muted); font-size: 14px; flex: 1;">请先登录后投递简历</p>
+            <a href="/login" class="btn btn-primary">登录</a>
+        `;
+        {% else %}
+        document.getElementById('jobModalFooter').innerHTML = `
+            <a href="/jobs" class="btn btn-outline">查看更多</a>
+            <button class="btn btn-primary" onclick="applyJob(${job.id})">投递简历</button>
+        `;
+        {% endif %}
+    } catch (error) {
+        document.getElementById('jobModalBody').innerHTML = `
+            <div class="alert alert-danger">加载失败，请稍后重试</div>
+        `;
+    }
+}
+
+function closeJobModal() {
+    closeModal('jobModal');
+}
+
+async function applyJob(jobId) {
+    try {
+        await axios.post('/api/applications/', { job_id: jobId }, { withCredentials: true });
+        toast.success('投递成功！');
+        closeJobModal();
+    } catch (error) {
+        toast.error(error.response?.data?.detail || '投递失败');
+    }
+}
+
+async function loadAnnouncement() {
+    try {
+        const response = await axios.post('/api/system/config', {}, { withCredentials: true });
+        const configs = response.data;
+        const announcement = configs['homepage_announcement'];
+        if (announcement && announcement.trim()) {
+            document.getElementById('announcementText').textContent = announcement;
+            document.getElementById('announcementSection').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('加载公告失败:', error);
+    }
+}
+
+function throttle(func, delay) {
+    let inThrottle;
+    return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, delay);
+        }
+    };
+}
+
+function handleScroll() {
+    const scrollPosition = window.scrollY;
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const scrollPercentage = scrollPosition / (documentHeight - windowHeight);
+    
+    const xPosition = scrollPercentage * 100;
+    document.body.style.backgroundPosition = `${xPosition}% ${xPosition}%`;
+}
+
+const throttledHandleScroll = throttle(handleScroll, 16); // 约60fps
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadStatistics();
+    loadRecommendedJobs();
+    loadAnnouncement();
+    
+    window.addEventListener('scroll', throttledHandleScroll);
+    handleScroll(); // 初始调用一次
+});
+</script>
+{% endblock %}

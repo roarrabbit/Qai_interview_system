@@ -1,0 +1,1514 @@
+{% extends "base.html" %}
+
+{% block title %}HR管理面板 - 智能招聘平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-bottom: 3rem;
+}
+
+.welcome-card {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    color: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.welcome-card h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.welcome-card p {
+    opacity: 0.9;
+    margin: 0;
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 3rem;
+}
+
+.welcome-stat {
+    text-align: center;
+}
+
+.welcome-stat .num {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.welcome-stat .label {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+}
+
+.main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.panel {
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.panel-header h3 i {
+    color: var(--primary-color);
+}
+
+.panel-body {
+    padding: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.panel-body.no-max {
+    max-height: none;
+}
+
+.job-card {
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.job-card:hover {
+    border-color: var(--primary-color);
+}
+
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.job-card-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.job-card-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.job-card-meta i {
+    color: var(--primary-color);
+    margin-right: 0.25rem;
+}
+
+.job-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-white);
+    border-radius: var(--radius-sm);
+}
+
+.job-stat .num {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.job-stat .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.job-card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.job-group {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.job-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--bg-white);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.job-group-header:hover {
+    background: var(--bg-muted);
+}
+
+.job-group-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.job-group-title i {
+    color: var(--text-muted);
+}
+
+.job-group-stats {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.job-group-content {
+    padding: 0.5rem;
+    background: var(--bg-light);
+}
+
+.application-card {
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.app-candidate {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.app-candidate .avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+.app-candidate-info h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.app-candidate-info span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.app-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.app-stat-item .label {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.app-stat-item .value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.app-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.candidate-card {
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.candidate-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.candidate-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.candidate-header .avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent-color) 0%, #3b82f6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+.candidate-info {
+    flex: 1;
+}
+
+.candidate-info h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.candidate-info span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.candidate-match {
+    text-align: right;
+}
+
+.candidate-match .num {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.candidate-match .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.candidate-skills {
+    margin-bottom: 0.75rem;
+}
+
+.candidate-contact {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.candidate-contact i {
+    color: var(--primary-color);
+    margin-right: 0.25rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.job-select {
+    margin-top: 0.5rem;
+}
+
+.job-select label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-right: 0.5rem;
+}
+
+.job-select select {
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="welcome-card">
+        <div>
+            <h2>欢迎回来，{{ hr_profile.contact_person or user.username }}</h2>
+            <p><i class="bi bi-building" style="margin-right: 0.5rem;"></i>{{ hr_profile.company_name or '待完善企业信息' }}</p>
+        </div>
+        <div class="welcome-stats">
+            <div class="welcome-stat">
+                <div class="num" id="welcome-jobs-count">0</div>
+                <div class="label">岗位数量</div>
+            </div>
+            <div class="welcome-stat">
+                <div class="num" id="welcome-apps-count">0</div>
+                <div class="label">收到申请</div>
+            </div>
+            <div class="welcome-stat">
+                <div class="num" id="welcome-pending-count">0</div>
+                <div class="label">待处理</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="main-column">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><i class="bi bi-briefcase"></i>岗位管理</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('postJobModal')">
+                        <i class="bi bi-plus-circle" style="margin-right: 0.25rem;"></i>发布新岗位
+                    </button>
+                </div>
+                <div class="panel-body" id="jobsList">
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>暂无岗位，点击"发布新岗位"开始招聘</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><i class="bi bi-file-earmark-text"></i>待处理申请</h3>
+                </div>
+                <div class="panel-body no-max" id="applicationsList">
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>暂无申请</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="side-column">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><i class="bi bi-star"></i>智能推荐候选人</h3>
+                </div>
+                <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color);">
+                    <div class="job-select">
+                        <label>选择岗位：</label>
+                        <select id="jobSelectForRecommendations"></select>
+                    </div>
+                </div>
+                <div class="panel-body no-max" id="recommendedCandidates">
+                    <div class="empty-state">
+                        <i class="bi bi-robot"></i>
+                        <p>发布岗位后将自动推荐候选人</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="postJobModal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3>发布新岗位</h3>
+            <button class="modal-close" onclick="closeModal('postJobModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="postJobForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">岗位名称 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="job_title" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">工作地点 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="job_location" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">薪资范围 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="job_salary" placeholder="如：15k-25k" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">招聘人数 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="number" class="form-control" id="job_count" value="1" min="1" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">技能要求</label>
+                        <input type="text" class="form-control" id="job_skills" placeholder="多个技能可用逗号或顿号分隔">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">岗位描述 <span style="color: var(--danger-color);">*</span></label>
+                        <textarea class="form-control" id="job_description" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">学历要求</label>
+                        <select class="form-control" id="job_education">
+                            <option value="不限">不限</option>
+                            <option value="大专">大专</option>
+                            <option value="本科">本科</option>
+                            <option value="硕士">硕士</option>
+                            <option value="博士">博士</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">工作经验要求</label>
+                        <select class="form-control" id="job_experience">
+                            <option value="不限">不限</option>
+                            <option value="应届毕业生">应届毕业生</option>
+                            <option value="1年以下">1年以下</option>
+                            <option value="1-3年">1-3年</option>
+                            <option value="3-5年">3-5年</option>
+                            <option value="5-10年">5-10年</option>
+                            <option value="10年以上">10年以上</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('postJobModal')">取消</button>
+            <button class="btn btn-primary" onclick="submitJob()">发布岗位</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="editJobModal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3>编辑岗位</h3>
+            <button class="modal-close" onclick="closeModal('editJobModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editJobForm">
+                <input type="hidden" id="edit_job_id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">岗位名称 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="edit_job_title" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">工作地点 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="edit_job_location" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">薪资范围 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="text" class="form-control" id="edit_job_salary" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">招聘人数 <span style="color: var(--danger-color);">*</span></label>
+                        <input type="number" class="form-control" id="edit_job_count" min="1" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">技能要求</label>
+                        <input type="text" class="form-control" id="edit_job_skills" placeholder="多个技能可用逗号或顿号分隔">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">岗位描述 <span style="color: var(--danger-color);">*</span></label>
+                        <textarea class="form-control" id="edit_job_description" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">学历要求</label>
+                        <select class="form-control" id="edit_job_education">
+                            <option value="不限">不限</option>
+                            <option value="大专">大专</option>
+                            <option value="本科">本科</option>
+                            <option value="硕士">硕士</option>
+                            <option value="博士">博士</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">工作经验要求</label>
+                        <select class="form-control" id="edit_job_experience">
+                            <option value="不限">不限</option>
+                            <option value="应届毕业生">应届毕业生</option>
+                            <option value="1年以下">1年以下</option>
+                            <option value="1-3年">1-3年</option>
+                            <option value="3-5年">3-5年</option>
+                            <option value="5-10年">5-10年</option>
+                            <option value="10年以上">10年以上</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" style="color: #ef4444; border-color: #ef4444; margin-right: auto;" onclick="deleteJobFromEdit()" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                <i class="bi bi-trash" style="margin-right: 0.25rem;"></i>删除岗位
+            </button>
+            <button class="btn btn-outline" onclick="closeModal('editJobModal')">取消</button>
+            <button class="btn btn-primary" onclick="saveEditJob()">保存修改</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="jobDetailModal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>岗位详情</h3>
+            <button class="modal-close" onclick="closeModal('jobDetailModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="jobDetailBody">
+            <div style="text-align: center; padding: 3rem;">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="candidateDetailModal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3>候选人详情</h3>
+            <button class="modal-close" onclick="closeModal('candidateDetailModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="candidateDetailBody">
+            <div style="text-align: center; padding: 3rem;">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="applicationDetailModal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3>申请详情</h3>
+            <button class="modal-close" onclick="closeModal('applicationDetailModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="applicationDetailBody">
+            <div style="text-align: center; padding: 3rem;">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="offlineInterviewModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3><i class="bi bi-calendar-check" style="margin-right: 0.5rem;"></i>发送线下面试邀约</h3>
+            <button class="modal-close" onclick="closeModal('offlineInterviewModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="offlineInterviewForm">
+                <input type="hidden" id="interviewApplicationId">
+                <div class="form-group">
+                    <label class="form-label">面试地点 <span style="color: var(--danger-color);">*</span></label>
+                    <input type="text" class="form-control" id="interviewLocation" placeholder="请输入详细面试地址" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">面试时间 <span style="color: var(--danger-color);">*</span></label>
+                    <input type="datetime-local" class="form-control" id="interviewDateTime" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">面试官信息</label>
+                    <input type="text" class="form-control" id="interviewerInfo" placeholder="请输入面试官姓名、职位等信息">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">面试须知/备注</label>
+                    <textarea class="form-control" id="interviewNotes" rows="4" placeholder="请输入面试须知或备注信息">面试须知：
+1. 请提前15分钟到达面试地点
+2. 携带身份证等有效证件
+3. 准备好个人简历
+4. 着装得体</textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('offlineInterviewModal')">取消</button>
+            <button class="btn btn-primary" onclick="submitOfflineInterviewInvitation()">确认发送邀约</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="sendJobInvitationModal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3><i class="bi bi-paper-plane" style="margin-right: 0.5rem;"></i>发送岗位邀约</h3>
+            <button class="modal-close" onclick="closeModal('sendJobInvitationModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">HR留言（可选）</label>
+                <textarea class="form-control" id="invitationMessage" rows="3" placeholder="您可以在此输入个性化的邀约消息"></textarea>
+            </div>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle" style="margin-right: 0.5rem;"></i>
+                将向候选人发送当前选中岗位的邀约
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('sendJobInvitationModal')">取消</button>
+            <button class="btn btn-accent" id="confirmInvitationBtn">确认发送</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="confirmDeleteModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3 style="color: var(--danger-color);"><i class="bi bi-exclamation-triangle" style="margin-right: 0.5rem;"></i>确认删除</h3>
+            <button class="modal-close" onclick="closeModal('confirmDeleteModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 0.5rem;">确定要删除此岗位吗？此操作不可恢复！</p>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">删除岗位后，所有相关的申请记录也将被删除。</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('confirmDeleteModal')">取消</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentCandidateId = null;
+let currentCandidateUserId = null;
+
+async function loadDashboard() {
+    await Promise.all([
+        loadJobs(),
+        loadApplications(),
+        loadRecommendedCandidates()
+    ]);
+}
+
+async function loadJobs() {
+    try {
+        const response = await axios.get('/api/jobs/my-jobs', { withCredentials: true });
+        const jobs = response.data;
+        
+        jobs.sort((a, b) => {
+            if (a.is_active !== b.is_active) {
+                return b.is_active - a.is_active;
+            }
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        
+        document.getElementById('welcome-jobs-count').textContent = jobs.length;
+        
+        const container = document.getElementById('jobsList');
+        if (jobs.length === 0) {
+            container.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><p>暂无岗位</p></div>';
+            return;
+        }
+        
+        container.innerHTML = jobs.map(job => `
+            <div class="job-card" style="cursor: pointer;" onclick="viewJobDetail(${job.id})">
+                <div class="job-card-header">
+                    <h4>${escapeHtml(job.title)}</h4>
+                    <span class="status-badge status-${job.is_active ? 'success' : 'secondary'}">${job.is_active ? '招聘中' : '已关闭'}</span>
+                </div>
+                <div class="job-card-meta">
+                    <i class="bi bi-geo-alt"></i>${escapeHtml(job.location)}
+                    <span style="margin-left: 1rem;"><i class="bi bi-cash"></i>${escapeHtml(job.salary_range)}</span>
+                    <span style="margin-left: 1rem;"><i class="bi bi-mortarboard"></i>${escapeHtml(job.education_required || '不限')}</span>
+                </div>
+                <div class="job-stats">
+                    <div class="job-stat">
+                        <div class="num">${job.application_count || 0}</div>
+                        <div class="label">申请数</div>
+                    </div>
+                    <div class="job-stat">
+                        <div class="num" style="color: var(--warning-color);">${job.pending_count || 0}</div>
+                        <div class="label">待处理</div>
+                    </div>
+                    <div class="job-stat">
+                        <div class="num" style="color: var(--success-color);">${job.accepted_count || 0}</div>
+                        <div class="label">已通过</div>
+                    </div>
+                    <div class="job-stat">
+                        <div class="num" style="color: var(--accent-color);">${job.interview_count || 0}</div>
+                        <div class="label">面试中</div>
+                    </div>
+                </div>
+                <div class="job-card-actions" onclick="event.stopPropagation()">
+                    <button class="btn btn-sm btn-outline" onclick="viewJobDetail(${job.id})">查看详情</button>
+                    <button class="btn btn-sm btn-outline" onclick="editJob(${job.id})">编辑</button>
+                    <button class="btn btn-sm btn-${job.is_active ? 'outline' : 'primary'}" onclick="toggleJobStatus(${job.id}, ${!job.is_active})">
+                        ${job.is_active ? '关闭招聘' : '开启招聘'}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('加载岗位失败:', error);
+    }
+}
+
+async function loadApplications() {
+    try {
+        const response = await axios.post('/api/applications/hr', {}, { withCredentials: true });
+        let applications = response.data;
+        
+        const statusPriority = {
+            '待处理': 0,
+            '已查看': 1,
+            '面试邀约': 2,
+            '线下面试': 3,
+            '成功入职': 4,
+            '已拒绝': 5
+        };
+        
+        applications.sort((a, b) => {
+            const priorityDiff = statusPriority[a.status] - statusPriority[b.status];
+            if (priorityDiff !== 0) return priorityDiff;
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
+        
+        document.getElementById('welcome-apps-count').textContent = applications.length;
+        
+        const pending = applications.filter(app => app.status === '待处理').length;
+        document.getElementById('welcome-pending-count').textContent = pending;
+        
+        const container = document.getElementById('applicationsList');
+        if (applications.length === 0) {
+            container.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><p>暂无申请</p></div>';
+            return;
+        }
+        
+        const statusClass = {
+            '待处理': 'warning',
+            '已查看': 'info',
+            '面试邀约': 'accent',
+            '线下面试': 'success',
+            '成功入职': 'success',
+            '已拒绝': 'secondary'
+        };
+        
+        const jobsMap = {};
+        applications.forEach(app => {
+            const jobId = app.job?.id || 'unknown';
+            const jobTitle = app.job?.title || '未知岗位';
+            if (!jobsMap[jobId]) {
+                jobsMap[jobId] = {
+                    title: jobTitle,
+                    applications: []
+                };
+            }
+            jobsMap[jobId].applications.push(app);
+        });
+        
+        let html = '';
+        Object.entries(jobsMap).forEach(([jobId, jobData], index) => {
+            const pendingCount = jobData.applications.filter(a => a.status === '待处理').length;
+            const activeCount = jobData.applications.filter(a => a.status !== '已拒绝' && a.status !== '成功入职').length;
+            html += `
+                <div class="job-group">
+                    <div class="job-group-header" onclick="toggleJobGroup('${jobId}')">
+                        <div class="job-group-title">
+                            <i class="bi bi-chevron-down" id="chevron-${jobId}" style="transition: transform 0.2s; transform: rotate(-90deg);"></i>
+                            <span>${escapeHtml(jobData.title)}</span>
+                        </div>
+                        <div class="job-group-stats">
+                            <span class="badge badge-primary">${activeCount} 条申请</span>
+                            ${pendingCount > 0 ? `<span class="badge badge-warning">${pendingCount} 待处理</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="job-group-content" id="group-${jobId}" style="display: none;">
+            `;
+            
+            jobData.applications.forEach(app => {
+                html += `
+                    <div class="application-card">
+                        <div class="app-header">
+                            <div class="app-candidate">
+                                <div class="avatar">${escapeHtml(app.candidate?.real_name || app.candidate?.username || 'U')[0].toUpperCase()}</div>
+                                <div class="app-candidate-info">
+                                    <h4>${escapeHtml(app.candidate?.real_name || app.candidate?.username)}</h4>
+                                    <span>${escapeHtml(app.job?.title)}</span>
+                                </div>
+                            </div>
+                            <span class="status-badge status-${statusClass[app.status] || 'secondary'}">${app.status}</span>
+                        </div>
+                        <div class="app-stats">
+                            <div class="app-stat-item">
+                                <div class="label">申请时间</div>
+                                <div class="value">${formatUTCDate(app.created_at)}</div>
+                            </div>
+                            <div class="app-stat-item">
+                                <div class="label">匹配度</div>
+                                <div class="value"><span class="badge badge-primary">${app.match_percentage || app.match_score || 0}%</span></div>
+                            </div>
+                            <div class="app-stat-item">
+                                <div class="label">AI面试</div>
+                                <div class="value">${app.interview_grade ? `<span class="badge badge-${app.interview_grade === 'A' ? 'success' : app.interview_grade === 'B' ? 'accent' : 'warning'}">${app.interview_grade}级</span>` : '-'}</div>
+                            </div>
+                            <div class="app-stat-item">
+                                <div class="label">技能</div>
+                                <div class="value">${escapeHtml((app.candidate?.skills || '').split(/[,、，]/)[0] || '-')}</div>
+                            </div>
+                        </div>
+                        <div class="app-actions">
+                            ${app.status === '待处理' || app.status === '已查看' ? `
+                            <button class="btn btn-sm btn-accent" onclick="showOfflineInterviewModal(${app.id})"><i class="bi bi-calendar-check" style="margin-right: 0.25rem;"></i>邀约面试</button>
+                            <button class="btn btn-sm btn-outline" style="color: var(--danger-color);" onclick="updateApplicationStatus(${app.id}, '已拒绝')"><i class="bi bi-x-circle" style="margin-right: 0.25rem;"></i>拒绝</button>
+                            ` : ''}
+                            ${app.status === '面试邀约' ? `
+                            <button class="btn btn-sm btn-accent" disabled><i class="bi bi-calendar-check" style="margin-right: 0.25rem;"></i>已邀约面试</button>
+                            ` : ''}
+                            ${app.status === '线下面试' ? `
+                            ${!app.offer_sent ? `
+                            <button class="btn btn-sm btn-primary" onclick="sendOffer(${app.id})"><i class="bi bi-envelope-check" style="margin-right: 0.25rem;"></i>邀请入职</button>
+                            <button class="btn btn-sm btn-outline" style="color: var(--danger-color);" onclick="updateApplicationStatus(${app.id}, '已拒绝')"><i class="bi bi-x-circle" style="margin-right: 0.25rem;"></i>拒绝</button>
+                            ` : `
+                            <button class="btn btn-sm btn-success" disabled><i class="bi bi-clock" style="margin-right: 0.25rem;"></i>已邀请入职，待确认</button>
+                            `}
+                            ` : ''}
+                            ${app.status === '已拒绝' ? `
+                            <button class="btn btn-sm" style="color: var(--danger-color);" disabled><i class="bi bi-x-circle" style="margin-right: 0.25rem;"></i>已拒绝</button>
+                            ` : ''}
+                            ${app.status === '成功入职' ? `
+                            <button class="btn btn-sm btn-success" disabled><i class="bi bi-check-circle" style="margin-right: 0.25rem;"></i>成功入职</button>
+                            ` : ''}
+                            <button class="btn btn-sm btn-outline" onclick="viewApplicationDetail(${app.id})"><i class="bi bi-eye"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div></div>';
+        });
+        
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('加载申请失败:', error);
+    }
+}
+
+function toggleJobGroup(jobId) {
+    const content = document.getElementById(`group-${jobId}`);
+    const chevron = document.getElementById(`chevron-${jobId}`);
+    if (content && chevron) {
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            chevron.style.transform = 'rotate(0deg)';
+        } else {
+            content.style.display = 'none';
+            chevron.style.transform = 'rotate(-90deg)';
+        }
+    }
+}
+
+async function loadRecommendedCandidates(jobId = null) {
+    try {
+        const jobsResponse = await axios.get('/api/jobs/my-jobs', { withCredentials: true });
+        const jobs = jobsResponse.data;
+        
+        if (jobs.length === 0) return;
+        
+        const jobSelect = document.getElementById('jobSelectForRecommendations');
+        if (jobSelect) {
+            const currentValue = jobSelect.value;
+            jobSelect.innerHTML = jobs.map(job => `
+                <option value="${job.id}" ${job.id == jobId ? 'selected' : ''}>
+                    ${escapeHtml(job.title)} - ${escapeHtml(job.location)}
+                </option>
+            `).join('');
+            
+            if (!jobSelect.dataset.listenerAdded) {
+                jobSelect.addEventListener('change', (e) => {
+                    loadRecommendedCandidates(e.target.value);
+                });
+                jobSelect.dataset.listenerAdded = 'true';
+            }
+        }
+        
+        const targetJobId = jobId || jobs.find(j => j.is_active)?.id || jobs[0].id;
+        
+        const response = await axios.get(`/api/jobs/${targetJobId}/recommendations`, { withCredentials: true });
+        const candidates = response.data;
+        
+        const container = document.getElementById('recommendedCandidates');
+        if (candidates.length === 0) {
+            container.innerHTML = '<div class="empty-state"><i class="bi bi-inbox"></i><p>暂无推荐</p></div>';
+            return;
+        }
+        
+        container.innerHTML = candidates.map(rec => `
+            <div class="candidate-card" onclick="event.stopPropagation(); viewCandidateDetail(${rec.candidate.id})">
+                <div class="candidate-header">
+                    <div class="avatar">${escapeHtml(rec.candidate.real_name || rec.candidate.username)[0].toUpperCase()}</div>
+                    <div class="candidate-info">
+                        <h4>${escapeHtml(rec.candidate.real_name || rec.candidate.username)}</h4>
+                        <span>${escapeHtml(rec.candidate.target_job || '未设置')}</span>
+                    </div>
+                    <div class="candidate-match">
+                        <div class="num">${rec.match_percentage || rec.match_score || 0}%</div>
+                        <div class="label">匹配度</div>
+                    </div>
+                </div>
+                <div class="candidate-skills">
+                    ${(rec.candidate.skills || '').split(/[,、，]/).slice(0, 3).map(skill => 
+                        `<span class="skill-tag">${escapeHtml(skill.trim())}</span>`
+                    ).join('')}
+                </div>
+                <div class="candidate-contact">
+                    <i class="bi bi-telephone"></i>${escapeHtml(rec.candidate.phone || '-')}
+                </div>
+                <button onclick="event.stopPropagation(); goToChat(${rec.candidate.user_id})" class="btn btn-sm btn-primary" style="width: 100%;">
+                    <i class="bi bi-chat-dots" style="margin-right: 0.5rem;"></i>发送消息
+                </button>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('加载推荐候选人失败:', error);
+    }
+}
+
+async function submitJob() {
+    const form = document.getElementById('postJobForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const formData = {
+        title: document.getElementById('job_title').value,
+        location: document.getElementById('job_location').value,
+        salary_range: document.getElementById('job_salary').value,
+        description: document.getElementById('job_description').value,
+        required_skills: document.getElementById('job_skills').value || '',
+        hiring_count: parseInt(document.getElementById('job_count').value),
+        education_required: document.getElementById('job_education').value,
+        work_experience: document.getElementById('job_experience').value
+    };
+    
+    try {
+        await axios.post('/api/jobs', formData, { withCredentials: true });
+        toast.success('岗位发布成功');
+        closeModal('postJobModal');
+        document.getElementById('postJobForm').reset();
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error('发布岗位失败:', error);
+        toast.error('发布岗位失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function updateApplicationStatus(appId, status) {
+    try {
+        await axios.put(`/api/applications/${appId}/status`, { status }, { withCredentials: true });
+        toast.success('申请已' + (status === '已拒绝' ? '拒绝' : '更新'));
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error('更新状态失败:', error);
+        toast.error('更新失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+function showOfflineInterviewModal(appId) {
+    document.getElementById('interviewApplicationId').value = appId;
+    openModal('offlineInterviewModal');
+}
+
+async function submitOfflineInterviewInvitation() {
+    const appId = document.getElementById('interviewApplicationId').value;
+    const location = document.getElementById('interviewLocation').value;
+    const dateTime = document.getElementById('interviewDateTime').value;
+    const interviewerInfo = document.getElementById('interviewerInfo').value;
+    const notes = document.getElementById('interviewNotes').value;
+    
+    if (!location || !dateTime) {
+        toast.error('请填写必填字段');
+        return;
+    }
+    
+    try {
+        await axios.post(`/api/applications/${appId}/offline-interview`, {
+            location,
+            date_time: dateTime,
+            interviewer_info: interviewerInfo,
+            notes
+        }, { withCredentials: true });
+        
+        toast.success('线下面试邀约已发送');
+        closeModal('offlineInterviewModal');
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error('发送面试邀约失败:', error);
+        toast.error('发送失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function sendOffer(appId) {
+    try {
+        await axios.post(`/api/applications/${appId}/send-offer`, {}, { withCredentials: true });
+        toast.success('入职通知已发送');
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error('发送入职通知失败:', error);
+        toast.error('操作失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function viewJobDetail(jobId) {
+    openModal('jobDetailModal');
+    
+    try {
+        const response = await axios.get(`/api/jobs/${jobId}`, { withCredentials: true });
+        const job = response.data;
+        
+        document.getElementById('jobDetailBody').innerHTML = `
+            <div>
+                <h4 style="margin-bottom: 1rem;">${escapeHtml(job.title)}</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">工作地点</div>
+                        <div><i class="bi bi-geo-alt" style="color: var(--primary-color); margin-right: 0.25rem;"></i>${escapeHtml(job.location)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">薪资范围</div>
+                        <div><i class="bi bi-cash" style="color: var(--primary-color); margin-right: 0.25rem;"></i>${escapeHtml(job.salary_range)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">状态</div>
+                        <div><span class="status-badge status-${job.is_active ? 'success' : 'secondary'}">${job.is_active ? '招聘中' : '已关闭'}</span></div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">招聘人数</div>
+                        <div>${job.hiring_count || 1}人</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">工作经验</div>
+                        <div>${escapeHtml(job.work_experience || '不限')}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">发布时间</div>
+                        <div>${formatUTCDate(job.created_at)}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <strong style="display: block; margin-bottom: 0.5rem;">岗位描述</strong>
+                    <p style="color: var(--text-muted);">${escapeHtml(job.description || '-')}</p>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <strong style="display: block; margin-bottom: 0.5rem;">学历要求</strong>
+                    <p style="color: var(--text-muted);">${escapeHtml(job.education_required || '不限')}</p>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <strong style="display: block; margin-bottom: 0.5rem;">技能要求</strong>
+                    <p style="color: var(--text-muted);">${escapeHtml(job.required_skills || '-')}</p>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('加载岗位详情失败:', error);
+        document.getElementById('jobDetailBody').innerHTML = '<div class="alert alert-error">加载失败</div>';
+    }
+}
+
+async function editJob(jobId) {
+    try {
+        const response = await axios.get(`/api/jobs/${jobId}`, { withCredentials: true });
+        const job = response.data;
+        
+        document.getElementById('edit_job_id').value = job.id;
+        document.getElementById('edit_job_title').value = job.title;
+        document.getElementById('edit_job_location').value = job.location;
+        document.getElementById('edit_job_salary').value = job.salary_range;
+        document.getElementById('edit_job_count').value = job.hiring_count || 1;
+        document.getElementById('edit_job_skills').value = job.required_skills || '';
+        document.getElementById('edit_job_description').value = job.description || '';
+        document.getElementById('edit_job_education').value = job.education_required || '不限';
+        document.getElementById('edit_job_experience').value = job.work_experience || '不限';
+        
+        openModal('editJobModal');
+    } catch (error) {
+        console.error('加载岗位失败:', error);
+        toast.error('加载岗位失败');
+    }
+}
+
+async function saveEditJob() {
+    const form = document.getElementById('editJobForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    const jobId = document.getElementById('edit_job_id').value;
+    const jobData = {
+        title: document.getElementById('edit_job_title').value,
+        location: document.getElementById('edit_job_location').value,
+        salary_range: document.getElementById('edit_job_salary').value,
+        hiring_count: parseInt(document.getElementById('edit_job_count').value),
+        required_skills: document.getElementById('edit_job_skills').value,
+        description: document.getElementById('edit_job_description').value,
+        education_required: document.getElementById('edit_job_education').value,
+        work_experience: document.getElementById('edit_job_experience').value
+    };
+    
+    try {
+        await axios.put(`/api/jobs/${jobId}`, jobData, { withCredentials: true });
+        toast.success('岗位更新成功');
+        closeModal('editJobModal');
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error('更新岗位失败:', error);
+        toast.error('更新失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function toggleJobStatus(jobId, isActive) {
+    try {
+        await axios.put(`/api/jobs/${jobId}`, { is_active: isActive }, { withCredentials: true });
+        toast.success(isActive ? '开启招聘成功' : '关闭招聘成功');
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+        console.error('更新岗位状态失败:', error);
+        toast.error('更新失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function deleteJobFromEdit() {
+    const jobId = document.getElementById('edit_job_id').value;
+    
+    document.getElementById('confirmDeleteBtn').onclick = async function() {
+        try {
+            await axios.delete(`/api/jobs/${jobId}`, { withCredentials: true });
+            toast.success('岗位删除成功');
+            closeModal('confirmDeleteModal');
+            closeModal('editJobModal');
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (error) {
+            console.error('删除岗位失败:', error);
+            toast.error('删除失败：' + (error.response?.data?.detail || '未知错误'));
+        }
+    };
+    
+    openModal('confirmDeleteModal');
+}
+
+async function viewCandidateDetail(candidateId) {
+    openModal('candidateDetailModal');
+    
+    try {
+        const candidateResponse = await axios.get(`/api/candidates/${candidateId}`, { withCredentials: true });
+        const candidate = candidateResponse.data;
+        
+        let interviewInfo = '';
+        try {
+            const interviewsResponse = await axios.get(`/api/interviews/candidate/${candidateId}`, { withCredentials: true });
+            const interviews = interviewsResponse.data;
+            
+            if (interviews.length > 0) {
+                const lastInterview = interviews[0];
+                interviewInfo = `
+                    <div class="alert alert-info">
+                        <h6 style="margin-bottom: 0.5rem;"><i class="bi bi-robot" style="margin-right: 0.5rem;"></i>AI面试评分</h6>
+                        <p style="margin-bottom: 0.25rem;"><strong>综合评分：</strong>${lastInterview.score || 'N/A'}分</p>
+                        <p style="margin: 0;"><strong>评级：</strong>${lastInterview.overall_rating || '未评级'}</p>
+                    </div>
+                `;
+            } else {
+                interviewInfo = '<div class="alert alert-secondary"><i class="bi bi-info-circle" style="margin-right: 0.5rem;"></i>该候选人未进行AI面试</div>';
+            }
+        } catch (error) {
+            interviewInfo = '<div class="alert alert-secondary">未进行AI面试</div>';
+        }
+        
+        document.getElementById('candidateDetailBody').innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 200px; gap: 1.5rem; max-height: 600px; overflow-y: auto;">
+                <div>
+                    <h4 style="margin-bottom: 1rem;">${escapeHtml(candidate.real_name || candidate.username)}</h4>
+                    ${interviewInfo}
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5 style="margin-bottom: 0.75rem; font-size: 1rem;"><i class="bi bi-person" style="margin-right: 0.5rem; color: var(--primary-color);"></i>基本信息</h5>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem;">
+                            <div><span style="color: var(--text-muted);">性别：</span>${escapeHtml(candidate.gender || '未填写')}</div>
+                            <div><span style="color: var(--text-muted);">出生日期：</span>${escapeHtml(candidate.birth_date || '未填写')}</div>
+                            <div><span style="color: var(--text-muted);">电话：</span>${escapeHtml(candidate.phone || '未填写')}</div>
+                            <div><span style="color: var(--text-muted);">邮箱：</span>${escapeHtml(candidate.email || '未填写')}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5 style="margin-bottom: 0.75rem; font-size: 1rem;"><i class="bi bi-briefcase" style="margin-right: 0.5rem; color: var(--primary-color);"></i>求职意向</h5>
+                        <div style="font-size: 0.9rem;">
+                            <p style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">目标职位：</span>${escapeHtml(candidate.target_job || '未填写')}</p>
+                            <p style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">期望薪资：</span>${escapeHtml(candidate.expected_salary || '未填写')}</p>
+                            <p style="margin: 0;"><span style="color: var(--text-muted);">求职状态：</span>${escapeHtml(candidate.job_status || '未填写')}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5 style="margin-bottom: 0.75rem; font-size: 1rem;"><i class="bi bi-tools" style="margin-right: 0.5rem; color: var(--primary-color);"></i>技能摘要</h5>
+                        <div style="font-size: 0.9rem; margin-bottom: 0.75rem;">
+                            ${candidate.skills ? 
+                                `<p style="margin-bottom: 0.5rem;">该候选人掌握以下技能：</p>
+                                <div class="candidate-skills" style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                    ${(candidate.skills || '').split(/[,、，]/).map(skill => 
+                                        skill.trim() ? `<span class="skill-tag">${escapeHtml(skill.trim())}</span>` : ''
+                                    ).join('')}
+                                </div>` : 
+                                '<p>暂无技能信息</p>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 style="margin-bottom: 0.75rem; font-size: 1rem;"><i class="bi bi-mortarboard" style="margin-right: 0.5rem; color: var(--primary-color);"></i>教育与经验</h5>
+                        <div style="font-size: 0.9rem;">
+                            <p style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">学历：</span>${escapeHtml(candidate.education || '未填写')}</p>
+                            <p style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">专业：</span>${escapeHtml(candidate.major || '未填写')}</p>
+                            <p style="margin: 0;"><span style="color: var(--text-muted);">工作经验：</span>${escapeHtml(candidate.work_experience || '未填写')}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div class="avatar" style="width: 80px; height: 80px; font-size: 2rem; margin: 0 auto 0.5rem;">${escapeHtml(candidate.real_name || candidate.username)[0].toUpperCase()}</div>
+                        <h5 style="margin-bottom: 0.25rem;">${escapeHtml(candidate.real_name || candidate.username)}</h5>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">${escapeHtml(candidate.target_job || '求职者')}</p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button onclick="goToChat(${candidate.user_id})" class="btn btn-primary btn-sm">
+                            <i class="bi bi-chat-dots" style="margin-right: 0.5rem;"></i>发送消息
+                        </button>
+                        <button onclick="sendJobInvitation(${candidate.id}, ${candidate.user_id})" class="btn btn-accent btn-sm">
+                            <i class="bi bi-paper-plane" style="margin-right: 0.5rem;"></i>发送岗位邀约
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('加载候选人详情失败:', error);
+        document.getElementById('candidateDetailBody').innerHTML = '<div class="alert alert-error">加载失败</div>';
+    }
+}
+
+async function viewApplicationDetail(appId) {
+    openModal('applicationDetailModal');
+    
+    try {
+        const response = await axios.get(`/api/applications/${appId}`, { withCredentials: true });
+        const app = response.data;
+        
+        const candidateResponse = await axios.get(`/api/candidates/${app.candidate_id}`, { withCredentials: true });
+        const candidate = candidateResponse.data;
+        
+        document.getElementById('applicationDetailBody').innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 200px; gap: 1.5rem;">
+                <div>
+                    <h4 style="margin-bottom: 1rem;">${escapeHtml(candidate.real_name || candidate.username)}</h4>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.5rem;">
+                        <div style="background: var(--bg-light); padding: 0.75rem; border-radius: var(--radius-sm); text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">匹配度</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary-color);">${app.match_percentage || app.match_score || 0}%</div>
+                        </div>
+                        <div style="background: var(--bg-light); padding: 0.75rem; border-radius: var(--radius-sm); text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">AI面试评分</div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">${app.interview_grade ? `<span class="badge badge-${app.interview_grade === 'A' ? 'success' : app.interview_grade === 'B' ? 'accent' : 'warning'}">${app.interview_grade}级</span>` : '-'}</div>
+                        </div>
+                        <div style="background: var(--bg-light); padding: 0.75rem; border-radius: var(--radius-sm); text-align: center;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">申请日期</div>
+                            <div style="font-size: 0.9rem; font-weight: 500;">${formatUTCDate(app.created_at)}</div>
+                        </div>
+                    </div>
+                    
+                    ${app.status == '面试邀约' || app.status == '线下面试' ? `
+                    <div style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                        <h6 style="margin-bottom: 0.75rem;"><i class="bi bi-calendar-check" style="margin-right: 0.5rem; color: var(--primary-color);"></i>面试信息</h6>
+                        <div style="font-size: 0.9rem;">
+                            <p style="margin-bottom: 0.5rem;"><strong>面试地点：</strong>${app.interview_location || '未设置'}</p>
+                            <p style="margin-bottom: 0.5rem;"><strong>面试时间：</strong>${app.interview_time ? formatUTCTime(app.interview_time) : '未设置'}</p>
+                            <p style="margin-bottom: 0.5rem;"><strong>面试官：</strong>${app.interviewer_info || '未设置'}</p>
+                            ${app.interview_notes ? `<p style="margin: 0;"><strong>面试须知：</strong><br><span style="white-space: pre-wrap;">${app.interview_notes}</span></p>` : ''}
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5 style="margin-bottom: 0.75rem; font-size: 1rem;"><i class="bi bi-person" style="margin-right: 0.5rem; color: var(--primary-color);"></i>基本信息</h5>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem;">
+                            <div><span style="color: var(--text-muted);">性别：</span>${escapeHtml(candidate.gender || '未填写')}</div>
+                            <div><span style="color: var(--text-muted);">电话：</span>${escapeHtml(candidate.phone || '未填写')}</div>
+                            <div><span style="color: var(--text-muted);">邮箱：</span>${escapeHtml(candidate.email || '未填写')}</div>
+                            <div><span style="color: var(--text-muted);">出生日期：</span>${escapeHtml(candidate.birth_date || '未填写')}</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 style="margin-bottom: 0.75rem; font-size: 1rem;"><i class="bi bi-briefcase" style="margin-right: 0.5rem; color: var(--primary-color);"></i>求职意向</h5>
+                        <div style="font-size: 0.9rem;">
+                            <p style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">目标职位：</span>${escapeHtml(candidate.target_job || '未填写')}</p>
+                            <p style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">期望薪资：</span>${escapeHtml(candidate.expected_salary || '未填写')}</p>
+                            <p style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">教育背景：</span>${escapeHtml(candidate.education || '未填写')} - ${escapeHtml(candidate.major || '未填写')}</p>
+                            <p style="margin-bottom: 0.5rem;"><span style="color: var(--text-muted);">工作经验：</span>${escapeHtml(candidate.work_experience || '未填写')}</p>
+                            <p style="margin: 0;"><span style="color: var(--text-muted);">技能：</span>${escapeHtml(candidate.skills || '未填写')}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div class="avatar" style="width: 80px; height: 80px; font-size: 2rem; margin: 0 auto 0.5rem;">${escapeHtml(candidate.real_name || candidate.username)[0].toUpperCase()}</div>
+                        <h5 style="margin-bottom: 0.25rem;">${escapeHtml(candidate.real_name || candidate.username)}</h5>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">${escapeHtml(candidate.target_job || '求职者')}</p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button onclick="goToChat(${candidate.user_id})" class="btn btn-primary btn-sm">
+                            <i class="bi bi-chat-dots" style="margin-right: 0.5rem;"></i>发送消息
+                        </button>
+                        <button onclick="sendJobInvitation(${candidate.id}, ${candidate.user_id})" class="btn btn-accent btn-sm">
+                            <i class="bi bi-paper-plane" style="margin-right: 0.5rem;"></i>发送岗位邀约
+                        </button>
+                        ${app.status == '线下面试' && !app.offer_sent ? `
+                        <button onclick="sendOffer(${app.id})" class="btn btn-primary btn-sm">
+                            <i class="bi bi-envelope-check" style="margin-right: 0.5rem;"></i>发送入职通知
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('加载申请详情失败:', error);
+        document.getElementById('applicationDetailBody').innerHTML = '<div class="alert alert-error">加载失败</div>';
+    }
+}
+
+async function goToChat(userId) {
+    try {
+        await axios.post('/api/messages/', {
+            receiver_id: userId,
+            content: '你好！'
+        }, { withCredentials: true });
+        
+        sessionStorage.setItem('chatTargetUserId', userId);
+        window.location.href = '/chat';
+    } catch (error) {
+        console.error('发送消息失败:', error);
+        toast.error('发送消息失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+function sendJobInvitation(candidateId, userId) {
+    currentCandidateId = candidateId;
+    currentCandidateUserId = userId;
+    
+    openModal('sendJobInvitationModal');
+    
+    document.getElementById('confirmInvitationBtn').onclick = async function() {
+        await confirmSendInvitation();
+    };
+}
+
+async function confirmSendInvitation() {
+    const message = document.getElementById('invitationMessage').value;
+    const jobSelect = document.getElementById('jobSelectForRecommendations');
+    
+    if (!jobSelect) {
+        toast.error('系统错误：未找到岗位选择器');
+        return;
+    }
+    
+    const jobId = jobSelect.value;
+    if (!jobId || jobSelect.options.length === 0) {
+        toast.error('请先发布岗位并选择一个岗位');
+        return;
+    }
+    
+    try {
+        await axios.post('/api/applications/invite', {
+            candidate_id: currentCandidateId,
+            job_id: jobId,
+            message: message
+        }, { withCredentials: true });
+        
+        toast.success('岗位邀约发送成功');
+        closeModal('sendJobInvitationModal');
+        goToChat(currentCandidateUserId);
+    } catch (error) {
+        console.error('发送邀约失败:', error);
+        toast.error('发送邀约失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboard();
+    setInterval(loadDashboard, 30000);
+});
+</script>
+{% endblock %}

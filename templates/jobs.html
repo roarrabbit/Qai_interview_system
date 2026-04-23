@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+
+{% block title %}求职大厅 - 智能招聘平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    padding: 48px 0;
+    color: white;
+    margin-bottom: 32px;
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* 动画定义 */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.jobs-list-container {
+    animation: slideDown 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+.job-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.job-card.animate {
+    animation: slideUp 0.5s ease-out forwards;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1>求职大厅</h1>
+        <p>精准搜索，快速匹配理想职位</p>
+    </div>
+</div>
+
+<div class="container" style="margin-top: 32px;">
+    <div class="content-card" style="margin-bottom: 24px;">
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <label class="form-label">关键词</label>
+                <div class="search-bar" style="margin-bottom: 0;">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchKeyword" placeholder="搜索职位名称">
+                </div>
+            </div>
+            <div style="min-width: 180px;">
+                <label class="form-label">工作地点</label>
+                <select class="form-select" id="filterLocation">
+                    <option value="">不限</option>
+                </select>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button class="btn btn-primary" onclick="searchJobs()">
+                    <i class="bi bi-search"></i>
+                    搜索
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+            <h2 style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+                <i class="bi bi-briefcase" style="color: var(--primary-color); margin-right: 8px;"></i>
+                <span id="jobsTitle">全部岗位</span>
+            </h2>
+            <p style="font-size: 14px; color: var(--text-muted);">共 <span id="totalJobsCount">0</span> 个职位</p>
+        </div>
+    </div>
+    
+    <div id="jobsList" class="jobs-list-container">
+        <div class="empty-state">
+            <div class="loading-spinner"></div>
+            <p class="empty-state-title" style="margin-top: 20px;">正在加载岗位...</p>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="jobModal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h5 class="modal-title" id="jobModalTitle">岗位详情</h5>
+            <button class="modal-close" onclick="closeJobModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="jobModalBody">
+            <div style="text-align: center; padding: 40px;">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        <div class="modal-footer" id="jobModalFooter"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allJobs = [];
+let appliedJobIds = new Set();
+
+async function loadInitialData() {
+    await Promise.all([
+        loadLocations(),
+        loadAllJobs()
+    ]);
+}
+
+async function loadLocations() {
+    try {
+        const response = await axios.get('/api/jobs/', { withCredentials: true });
+        const jobs = response.data;
+        const locations = [...new Set(jobs.map(j => j.location))];
+        
+        const select = document.getElementById('filterLocation');
+        locations.forEach(loc => {
+            const option = document.createElement('option');
+            option.value = loc;
+            option.textContent = loc;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('加载地点失败:', error);
+    }
+}
+
+async function loadAllJobs() {
+    try {
+        const jobsResponse = await axios.get('/api/jobs/', { withCredentials: true });
+        allJobs = jobsResponse.data;
+        
+        appliedJobIds = new Set();
+        
+        {% if user and user.role == 'candidate' %}
+        try {
+            const applicationsResponse = await axios.get('/api/applications/', { withCredentials: true });
+            const applications = applicationsResponse.data;
+            appliedJobIds = new Set(applications.map(app => app.job_id));
+        } catch (appError) {
+            console.warn('获取申请记录失败:', appError);
+        }
+        {% endif %}
+        
+        document.getElementById('totalJobsCount').textContent = allJobs.length;
+        
+        const searchKeyword = sessionStorage.getItem('search_keyword');
+        if (searchKeyword) {
+            document.getElementById('searchKeyword').value = searchKeyword;
+            sessionStorage.removeItem('search_keyword');
+            await searchJobs();
+        } else {
+            renderJobCards(allJobs);
+        }
+    } catch (error) {
+        console.error('加载岗位失败:', error);
+        document.getElementById('jobsList').innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="bi bi-exclamation-circle"></i></div>
+                <p class="empty-state-title">加载失败</p>
+                <p class="empty-state-text">请刷新页面重试</p>
+            </div>
+        `;
+    }
+}
+
+async function searchJobs() {
+    const keyword = document.getElementById('searchKeyword').value.trim();
+    const location = document.getElementById('filterLocation').value;
+    
+    document.getElementById('jobsTitle').textContent = '搜索结果';
+    
+    try {
+        const response = await axios.post('/api/jobs/search', {
+            keyword,
+            location
+        }, { withCredentials: true });
+        const results = response.data;
+        
+        document.getElementById('totalJobsCount').textContent = results.length;
+        renderJobCards(results);
+    } catch (error) {
+        console.error('搜索失败:', error);
+        toast.error('搜索失败');
+    }
+}
+
+function renderJobCards(jobs) {
+    const container = document.getElementById('jobsList');
+    
+    if (jobs.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+                <p class="empty-state-title">暂无岗位</p>
+                <p class="empty-state-text">尝试调整搜索条件</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">' + jobs.map(job => {
+        const skills = (job.required_skills || '').split(',').slice(0, 4);
+        const hasApplied = appliedJobIds.has(job.id);
+        
+        return `
+            <div class="job-card ${hasApplied ? 'applied' : ''}" onclick="showJobDetail(${job.id})" style="${hasApplied ? 'opacity: 0.7;' : ''}">
+                <div class="job-card-header">
+                    <div>
+                        <h3 class="job-title">${escapeHtml(job.title)}</h3>
+                        <p class="job-company">${escapeHtml(job.hr?.company_name || '未知公司')}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="job-salary">${escapeHtml(job.salary_range)}</div>
+                        ${hasApplied ? '<span class="badge badge-gray" style="margin-top: 8px;">已投递</span>' : 
+                          job.hiring_count ? `<span class="badge badge-primary" style="margin-top: 8px;">招聘${job.hiring_count}人</span>` : ''}
+                    </div>
+                </div>
+                <div class="job-meta">
+                    <span class="job-meta-item"><i class="bi bi-geo-alt"></i> ${escapeHtml(job.location)}</span>
+                    ${job.work_experience ? `<span class="job-meta-item"><i class="bi bi-clock"></i> ${escapeHtml(job.work_experience)}</span>` : ''}
+                </div>
+                <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    ${escapeHtml(job.description ? job.description.substring(0, 120) : '-')}${job.description && job.description.length > 120 ? '...' : ''}
+                </p>
+                <div class="job-tags">
+                    ${skills.filter(s => s.trim()).map(skill => `<span class="skill-tag primary">${escapeHtml(skill.trim())}</span>`).join('')}
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light);">
+                    <span style="font-size: 13px; color: var(--text-muted);">${formatDate(job.created_at)}</span>
+                    <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); showJobDetail(${job.id})">
+                        查看详情
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('') + '</div>';
+    
+    container.innerHTML = html;
+    
+    // 添加动画效果
+    const jobCards = container.querySelectorAll('.job-card');
+    jobCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('animate');
+        }, index * 100);
+    });
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days === 0) return '今天';
+    if (days === 1) return '昨天';
+    if (days < 7) return `${days}天前`;
+    return date.toLocaleDateString('zh-CN');
+}
+
+async function showJobDetail(jobId) {
+    openModal('jobModal');
+    
+    try {
+        const response = await axios.get(`/api/jobs/${jobId}`, { withCredentials: true });
+        const job = response.data;
+        const hasApplied = appliedJobIds.has(job.id);
+        
+        document.getElementById('jobModalTitle').textContent = job.title;
+        document.getElementById('jobModalBody').innerHTML = `
+            <div style="margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">公司</p>
+                        <p style="font-weight: 500;"><i class="bi bi-building" style="color: var(--primary-color); margin-right: 8px;"></i>${escapeHtml(job.hr?.company_name || '未知公司')}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">薪资范围</p>
+                        <p style="font-weight: 500; color: var(--primary-color);"><i class="bi bi-cash" style="margin-right: 8px;"></i>${escapeHtml(job.salary_range)}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">工作地点</p>
+                        <p style="font-weight: 500;"><i class="bi bi-geo-alt" style="color: var(--accent-color); margin-right: 8px;"></i>${escapeHtml(job.location)}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">工作经验</p>
+                        <p style="font-weight: 500;">${escapeHtml(job.work_experience || '不限')}</p>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">岗位描述</h4>
+                    <p style="color: var(--text-secondary); line-height: 1.7;">${escapeHtml(job.description || '-')}</p>
+                </div>
+                
+                ${job.required_skills ? `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">技能要求</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${job.required_skills.split(',').filter(s => s.trim()).map(skill => `<span class="skill-tag primary">${escapeHtml(skill.trim())}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div>
+                    <p style="font-size: 13px; color: var(--text-muted);">发布时间：${formatUTCDate(job.created_at)}</p>
+                </div>
+            </div>
+        `;
+        
+        {% if user and user.role == 'candidate' %}
+        document.getElementById('jobModalFooter').innerHTML = `
+            ${hasApplied ? 
+                '<button class="btn btn-outline" disabled>已投递</button>' :
+                `<button class="btn btn-primary" onclick="submitApplication(${job.id})">投递简历</button>`
+            }
+            <button class="btn btn-accent" onclick="startInterview(${job.id})">AI面试</button>
+            <button class="btn btn-outline" onclick="contactHR(${job.id})">咨询HR</button>
+        `;
+        {% else %}
+        document.getElementById('jobModalFooter').innerHTML = `
+            <a href="/jobs/${job.id}" class="btn btn-outline">查看完整详情</a>
+        `;
+        {% endif %}
+    } catch (error) {
+        console.error('加载详情失败:', error);
+        document.getElementById('jobModalBody').innerHTML = `
+            <div class="alert alert-danger">加载失败，请稍后重试</div>
+        `;
+    }
+}
+
+function closeJobModal() {
+    closeModal('jobModal');
+}
+
+{% if user and user.role == 'candidate' %}
+async function submitApplication(jobId) {
+    try {
+        await axios.post('/api/applications/', { job_id: jobId }, { withCredentials: true });
+        toast.success('投递成功！');
+        appliedJobIds.add(jobId);
+        closeJobModal();
+        renderJobCards(allJobs);
+    } catch (error) {
+        toast.error(error.response?.data?.detail || '投递失败');
+    }
+}
+
+async function startInterview(jobId) {
+    showAILoading();
+    try {
+        const response = await axios.post('/api/interviews/', { job_id: jobId }, { 
+            withCredentials: true,
+            timeout: 200000 
+        });
+        hideAILoading();
+        toast.success('面试创建成功！');
+        setTimeout(() => {
+            window.location.href = `/interview/${response.data.id}`;
+        }, 500);
+    } catch (error) {
+        hideAILoading();
+        let errorMsg = '创建面试失败';
+        if (error.code === 'ECONNABORTED') {
+            errorMsg = 'AI服务响应超时，请检查服务是否正常';
+        } else if (error.response?.data?.detail) {
+            errorMsg = error.response.data.detail;
+        }
+        toast.error(errorMsg);
+    }
+}
+
+async function contactHR(jobId) {
+    try {
+        const jobResponse = await axios.get(`/api/jobs/${jobId}`, { withCredentials: true });
+        const job = jobResponse.data;
+        
+        if (!job.hr || !job.hr.user_id) {
+            toast.error('无法获取HR信息');
+            return;
+        }
+        
+        await axios.post('/api/messages/', {
+            receiver_id: job.hr.user_id,
+            content: '你好！',
+            job_id: jobId
+        }, { withCredentials: true });
+        
+        sessionStorage.setItem('chatTargetUserId', job.hr.user_id);
+        window.location.href = '/chat';
+    } catch (error) {
+        toast.error('发送消息失败');
+    }
+}
+
+function showAILoading() {
+    const overlay = document.createElement('div');
+    overlay.id = 'ai-loading';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 9999;';
+    
+    overlay.innerHTML = `
+        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); text-align: center; max-width: 400px;">
+            <div style="width: 64px; height: 64px; background: var(--primary-light); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i class="bi bi-robot" style="font-size: 32px; color: var(--primary-color);"></i>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">AI面试官正在准备中</h3>
+            <div class="progress" style="margin-bottom: 16px;">
+                <div class="progress-bar" id="ai-progress" style="width: 0%;"></div>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted);" id="ai-status">正在分析岗位要求...</p>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    let progress = 0;
+    const messages = ['正在分析岗位要求...', 'AI正在生成面试问题...', '正在优化问题难度...', '即将完成...'];
+    const interval = setInterval(() => {
+        progress += Math.random() * 15 + 5;
+        if (progress > 90) progress = 90;
+        
+        const bar = document.getElementById('ai-progress');
+        const status = document.getElementById('ai-status');
+        if (bar) bar.style.width = progress + '%';
+        if (status) status.textContent = messages[Math.min(Math.floor(progress / 25), messages.length - 1)];
+    }, 2000);
+    
+    overlay.dataset.interval = interval;
+}
+
+function hideAILoading() {
+    const overlay = document.getElementById('ai-loading');
+    if (overlay) {
+        clearInterval(parseInt(overlay.dataset.interval));
+        const bar = document.getElementById('ai-progress');
+        if (bar) bar.style.width = '100%';
+        setTimeout(() => overlay.remove(), 300);
+    }
+}
+{% endif %}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadInitialData();
+});
+</script>
+{% endblock %}

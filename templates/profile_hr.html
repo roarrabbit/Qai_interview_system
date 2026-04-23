@@ -1,0 +1,546 @@
+{% extends "base.html" %}
+
+{% block title %}招聘者中心 - 智能招聘平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-layout {
+    display: flex;
+    min-height: calc(100vh - 72px);
+    margin-top: 0;
+}
+
+.profile-sidebar {
+    width: 240px;
+    background: linear-gradient(180deg, var(--secondary-color) 0%, #78350f 100%);
+    padding: 0;
+    flex-shrink: 0;
+    position: sticky;
+    top: 72px;
+    height: calc(100vh - 72px);
+    overflow-y: auto;
+}
+
+.profile-brand {
+    padding: 28px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.profile-brand h3 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.profile-brand p {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.profile-nav {
+    padding: 16px 0;
+}
+
+.profile-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.profile-nav-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.profile-nav-link.active {
+    background: rgba(255,255,255,0.15);
+    border-left-color: var(--primary-color);
+    color: white;
+}
+
+.profile-nav-link svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.profile-content {
+    flex: 1;
+    padding: 32px;
+    background: var(--bg-secondary);
+    overflow-y: auto;
+    max-width: calc(100% - 240px);
+}
+
+.welcome-banner {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: 16px;
+    padding: 32px;
+    color: white;
+    margin-bottom: 28px;
+}
+
+.welcome-banner h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.welcome-banner p {
+    opacity: 0.9;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.welcome-banner .company-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    margin-left: 12px;
+}
+
+.section-panel {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.info-item {
+    padding: 12px 0;
+}
+
+.info-item .label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.info-item .value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.info-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.section-hidden {
+    display: none;
+}
+
+.action-bar {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .profile-layout {
+        flex-direction: column;
+    }
+    .profile-sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+    }
+    .profile-content {
+        max-width: 100%;
+        padding: 1rem;
+    }
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-group.full-width {
+        grid-column: span 1;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-layout">
+    <div class="profile-sidebar">
+        <div class="profile-brand">
+            <h3>个人中心</h3>
+            <p>{{ user.username }}</p>
+        </div>
+        <nav class="profile-nav">
+            <a href="#profile" class="profile-nav-link active" data-section="profile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                企业信息
+            </a>
+            <a href="#password" class="profile-nav-link" data-section="password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                修改密码
+            </a>
+        </nav>
+    </div>
+    
+    <div class="profile-content">
+        <div class="welcome-banner">
+            <h2>欢迎回来，{{ hr_profile.contact_person or user.username }}</h2>
+            <p>
+                <svg style="width:18px;height:18px;vertical-align:middle;margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                {{ hr_profile.company_name or '待完善企业信息' }}
+                {% if hr_profile.industry %}
+                <span class="company-tag">{{ hr_profile.industry }}</span>
+                {% endif %}
+            </p>
+        </div>
+        
+        <div id="section-profile" class="content-section">
+            <div class="section-panel">
+                <div class="section-header">
+                    <h3>企业信息</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label">用户名</div>
+                        <div class="value">{{ user.username }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">公司名称</div>
+                        <div class="value">{{ hr_profile.company_name or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">公司规模</div>
+                        <div class="value">{{ hr_profile.company_size or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">联系电话</div>
+                        <div class="value">{{ hr_profile.contact_phone or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">行业</div>
+                        <div class="value">{{ hr_profile.industry or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">联系人</div>
+                        <div class="value">{{ hr_profile.contact_person or '未填写' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">邮箱</div>
+                        <div class="value">{{ hr_profile.contact_email or '未填写' }}</div>
+                    </div>
+                    <div class="info-item full-width">
+                        <div class="label">公司简介</div>
+                        <div class="value">{{ hr_profile.company_description or '未填写' }}</div>
+                    </div>
+                </div>
+                <div class="action-bar">
+                    <button class="btn btn-primary" onclick="openModal('editHRProfileModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        编辑信息
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="section-password" class="content-section section-hidden">
+            <div class="section-panel">
+                <div class="section-header">
+                    <h3>修改密码</h3>
+                    <button class="btn btn-outline btn-sm" onclick="sendHelpMessage()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:6px;">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        寻求帮助
+                    </button>
+                </div>
+                <form id="changePasswordForm">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>旧密码</label>
+                            <input type="password" id="old_password" placeholder="请输入您的旧密码" required>
+                        </div>
+                        <div class="form-group">
+                            <label>新密码</label>
+                            <input type="password" id="new_password" placeholder="请输入您的新密码" required>
+                        </div>
+                        <div class="form-group">
+                            <label>确认新密码</label>
+                            <input type="password" id="confirm_password" placeholder="请再次输入新密码以确认" required>
+                        </div>
+                    </div>
+                    <div class="action-bar">
+                        <button type="button" class="btn btn-primary" onclick="changePassword()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;">
+                                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                                <polyline points="17,21 17,13 7,13 7,21"/>
+                                <polyline points="7,3 7,8 15,8"/>
+                            </svg>
+                            修改密码
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="editHRProfileModal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>编辑企业信息</h3>
+            <button class="modal-close" onclick="closeModal('editHRProfileModal')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editHRForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>公司名称</label>
+                        <input type="text" id="company_name" value="{{ hr_profile.company_name or '' }}" placeholder="公司名称">
+                    </div>
+                    <div class="form-group">
+                        <label>行业</label>
+                        <input type="text" id="industry" value="{{ hr_profile.industry or '' }}" placeholder="互联网/金融/教育">
+                    </div>
+                    <div class="form-group">
+                        <label>公司规模</label>
+                        <input type="text" id="company_size" value="{{ hr_profile.company_size or '' }}" placeholder="100-500人">
+                    </div>
+                    <div class="form-group">
+                        <label>联系人</label>
+                        <input type="text" id="contact_person" value="{{ hr_profile.contact_person or '' }}" placeholder="李经理">
+                    </div>
+                    <div class="form-group">
+                        <label>联系电话</label>
+                        <input type="text" id="contact_phone" value="{{ hr_profile.contact_phone or '' }}" placeholder="13800138000">
+                    </div>
+                    <div class="form-group">
+                        <label>联系邮箱</label>
+                        <input type="email" id="contact_email" value="{{ hr_profile.contact_email or '' }}" placeholder="hr@company.com">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>公司简介</label>
+                        <textarea id="company_description" rows="4" placeholder="请简要介绍公司业务范围、发展历程等">{{ hr_profile.company_description or '' }}</textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('editHRProfileModal')">取消</button>
+            <button class="btn btn-primary" onclick="saveHRProfile()">保存</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchSection(sectionName) {
+    document.querySelectorAll('.profile-nav-link').forEach(l => l.classList.remove('active'));
+    document.querySelector(`.profile-nav-link[data-section="${sectionName}"]`)?.classList.add('active');
+    document.querySelectorAll('.content-section').forEach(s => s.classList.add('section-hidden'));
+    document.getElementById(`section-${sectionName}`)?.classList.remove('section-hidden');
+}
+
+document.querySelectorAll('.profile-nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const section = this.dataset.section;
+        window.location.hash = section;
+        switchSection(section);
+    });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.slice(1);
+    const section = hash || 'profile';
+    switchSection(section);
+});
+
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.slice(1);
+    const section = hash || 'profile';
+    switchSection(section);
+});
+
+async function saveHRProfile() {
+    const data = {
+        company_name: document.getElementById('company_name').value,
+        industry: document.getElementById('industry').value,
+        company_size: document.getElementById('company_size').value,
+        contact_person: document.getElementById('contact_person').value,
+        contact_phone: document.getElementById('contact_phone').value,
+        contact_email: document.getElementById('contact_email').value,
+        company_description: document.getElementById('company_description').value
+    };
+    
+    try {
+        await axios.put('/api/users/hr/profile', data, {
+            withCredentials: true
+        });
+        toast.success('保存成功');
+        setTimeout(() => location.reload(), 1000);
+    } catch (error) {
+        toast.error('保存失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function changePassword() {
+    const oldPassword = document.getElementById('old_password').value;
+    const newPassword = document.getElementById('new_password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (!oldPassword || !newPassword || !confirmPassword) {
+        toast.error('请填写所有字段');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        toast.error('两次输入的新密码不一致');
+        return;
+    }
+    
+    if (newPassword.length < 8 || newPassword.length > 128) {
+        toast.error('新密码强度不足');
+        return;
+    }
+    
+    if (!/[A-Za-z]/.test(newPassword)) {
+        toast.error('新密码强度不足：必须包含字母');
+        return;
+    }
+    
+    if (!/[0-9]/.test(newPassword)) {
+        toast.error('新密码强度不足：必须包含数字');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('old_password', oldPassword);
+        formData.append('new_password', newPassword);
+        
+        await axios.post('/api/users/change-password', formData, {
+            withCredentials: true
+        });
+        
+        toast.success('密码修改成功，请重新登录');
+        setTimeout(() => {
+            document.cookie = 'access_token=; Max-Age=0; path=/';
+            location.href = '/login';
+        }, 1500);
+    } catch (error) {
+        toast.error('修改失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+
+async function sendHelpMessage() {
+    try {
+        await axios.post('/api/messages/', {
+            receiver_id: 1,
+            content: '您好，我在修改密码时遇到了问题，需要帮助。'
+        }, { withCredentials: true });
+        
+        sessionStorage.setItem('chatTargetUserId', 1);
+        window.location.href = '/chat';
+    } catch (error) {
+        console.error('发送消息失败:', error);
+        toast.error('发送消息失败：' + (error.response?.data?.detail || '未知错误'));
+    }
+}
+</script>
+{% endblock %}

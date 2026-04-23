@@ -1,0 +1,828 @@
+{% extends "base.html" %}
+
+{% block title %}AI对话面试 - 智能招聘平台{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 140px);
+    min-height: 600px;
+}
+
+.chat-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.chat-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-avatar svg {
+    width: 28px;
+    height: 28px;
+}
+
+.chat-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.chat-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.chat-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+.info-bar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 14px 28px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    height: 60px;
+    flex-shrink: 0;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.info-item svg {
+    width: 16px;
+    height: 16px;
+    color: var(--primary-color);
+}
+
+.difficulty-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.difficulty-badge.easy {
+    background: rgba(89, 158, 250, 0.15);
+    color: var(--accent-color);
+}
+
+.difficulty-badge.medium {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--primary-color);
+}
+
+.difficulty-badge.hard {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.chat-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    background: var(--bg-secondary);
+    scroll-behavior: smooth;
+    min-height: 200px;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.message-avatar svg {
+    width: 20px;
+    height: 20px;
+    color: white;
+}
+
+.message-ai .message-avatar {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    margin-right: 12px;
+}
+
+.message-user .message-avatar {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #3b82f6 100%);
+    margin-left: 12px;
+}
+
+.message-content {
+    flex: 1;
+    max-width: 70%;
+}
+
+.message-bubble {
+    padding: 14px 18px;
+    border-radius: 16px;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.message-ai .message-bubble {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.message-user .message-bubble {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #3b82f6 100%);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    padding: 0 4px;
+}
+
+.message-user {
+    flex-direction: row-reverse;
+}
+
+.message-user .message-time {
+    text-align: right;
+}
+
+.typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 18px;
+    background: white;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+    animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typingBounce {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+.chat-input-area {
+    padding: 20px 28px;
+    background: white;
+    border-top: 1px solid var(--border-color);
+}
+
+.chat-input-wrapper {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.chat-input {
+    flex: 1;
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 14px 20px;
+    font-size: 0.95rem;
+    resize: none;
+    outline: none;
+    transition: all 0.2s ease;
+    max-height: 120px;
+    min-height: 52px;
+    line-height: 1.5;
+    font-family: inherit;
+}
+
+.chat-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.chat-input:disabled {
+    background: var(--bg-secondary);
+    cursor: not-allowed;
+}
+
+.send-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.send-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.chat-ended-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.98);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.chat-ended-content {
+    text-align: center;
+    padding: 40px;
+}
+
+.chat-ended-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+
+.chat-ended-icon svg {
+    width: 40px;
+    height: 40px;
+    color: white;
+}
+
+.chat-ended-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.chat-ended-text {
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+    line-height: 1.6;
+}
+
+.chat-ended-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        height: calc(100vh - 70px);
+        border-radius: 0;
+    }
+    .chat-header {
+        padding: 16px 20px;
+    }
+    .chat-title {
+        font-size: 1rem;
+    }
+    .chat-avatar {
+        width: 44px;
+        height: 44px;
+    }
+    .chat-messages {
+        flex: 1;
+        min-height: 200px;
+        padding: 16px;
+    }
+    .chat-input-area {
+        padding: 12px 16px;
+    }
+    .chat-input {
+        padding: 12px 16px;
+        font-size: 16px;
+    }
+    .send-btn {
+        width: 48px;
+        height: 48px;
+    }
+    .message-content {
+        max-width: 85%;
+    }
+    .chat-ended-actions {
+        flex-direction: column;
+    }
+    .info-bar {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 12px 16px;
+        height: 70px;
+    }
+    .chat-ended-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <div class="chat-avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="10" rx="2"/>
+                    <circle cx="12" cy="5" r="2"/>
+                    <path d="M12 7v4"/>
+                    <line x1="8" y1="16" x2="8" y2="16"/>
+                    <line x1="16" y1="16" x2="16" y2="16"/>
+                </svg>
+            </div>
+            <div>
+                <div class="chat-title">AI面试官</div>
+                <div class="chat-subtitle" id="job-title">正在连接...</div>
+            </div>
+        </div>
+        <div class="chat-status">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">在线</span>
+        </div>
+    </div>
+
+    <div class="info-bar">
+        <div class="info-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+            </svg>
+            <span>难度：</span>
+            <span class="difficulty-badge medium" id="difficulty-badge">中级</span>
+        </div>
+        <div class="info-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span>问题数：<span id="question-count">0</span></span>
+        </div>
+    </div>
+
+    <div class="chat-wrapper">
+        <div class="chat-messages" id="chat-messages">
+            <div class="message message-ai">
+                <div class="message-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="10" rx="2"/>
+                        <circle cx="12" cy="5" r="2"/>
+                        <path d="M12 7v4"/>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">正在准备面试，请稍候...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-ended-overlay" id="chat-ended-overlay">
+            <div class="chat-ended-content">
+                <div class="chat-ended-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                </div>
+                <h3 class="chat-ended-title">面试已完成</h3>
+                <p class="chat-ended-text">
+                    感谢您的参与！AI正在生成评估报告，<br>
+                    请稍后在个人中心查看详细结果。
+                </p>
+                <div class="chat-ended-actions">
+                    <a href="/profile#interviews" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        查看面试记录
+                    </a>
+                    <a href="/jobs" class="btn btn-outline">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;margin-right:8px;">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        继续求职
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <div class="chat-input-wrapper">
+            <textarea 
+                class="chat-input" 
+                id="message-input" 
+                placeholder="输入您的回答..." 
+                rows="1"
+                disabled
+            ></textarea>
+            <button class="send-btn" id="send-btn" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const interviewId = {{ interview.id }};
+let isInterviewEnded = false;
+let questionCount = 0;
+
+function formatTime(timestamp) {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+}
+
+function addMessage(role, content, timestamp = null) {
+    const messagesContainer = document.getElementById('chat-messages');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message message-${role}`;
+    
+    const avatarSvg = role === 'ai' 
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">${avatarSvg}</div>
+        <div class="message-content">
+            <div class="message-bubble">${escapeHtml(content).replace(/\n/g, '<br>')}</div>
+            ${timestamp ? `<div class="message-time">${formatTime(timestamp)}</div>` : ''}
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function showTypingIndicator() {
+    const messagesContainer = document.getElementById('chat-messages');
+    
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message message-ai';
+    typingDiv.id = 'typing-indicator';
+    
+    typingDiv.innerHTML = `
+        <div class="message-avatar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="10" rx="2"/>
+                <circle cx="12" cy="5" r="2"/>
+                <path d="M12 7v4"/>
+            </svg>
+        </div>
+        <div class="message-content">
+            <div class="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(typingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+function updateStatus(text, isOnline = true) {
+    document.getElementById('status-text').textContent = text;
+    const dot = document.getElementById('status-dot');
+    dot.style.background = isOnline ? '#10b981' : '#94a3b8';
+}
+
+function setDifficultyBadge(difficulty) {
+    const badge = document.getElementById('difficulty-badge');
+    badge.textContent = difficulty;
+    badge.className = 'difficulty-badge';
+    
+    if (difficulty === '初级') {
+        badge.classList.add('easy');
+    } else if (difficulty === '中级') {
+        badge.classList.add('medium');
+    } else if (difficulty === '高级') {
+        badge.classList.add('hard');
+    }
+}
+
+function endInterview() {
+    isInterviewEnded = true;
+    document.getElementById('message-input').disabled = true;
+    document.getElementById('send-btn').disabled = true;
+    document.getElementById('chat-ended-overlay').style.display = 'flex';
+    updateStatus('面试已结束', false);
+}
+
+async function sendMessage() {
+    const input = document.getElementById('message-input');
+    const message = input.value.trim();
+    
+    if (!message || isInterviewEnded) return;
+    
+    input.value = '';
+    input.style.height = 'auto';
+    document.getElementById('send-btn').disabled = true;
+    input.disabled = true;
+    
+    addMessage('user', message, new Date().toISOString());
+    updateStatus('正在思考...', true);
+    showTypingIndicator();
+    
+    try {
+        const response = await fetch(`/api/conversation-interview/${interviewId}/message/stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ message: message })
+        });
+        
+        hideTypingIndicator();
+        
+        if (!response.ok) {
+            throw new Error('请求失败');
+        }
+        
+        const aiMessageDiv = document.createElement('div');
+        aiMessageDiv.className = 'message message-ai';
+        
+        const avatarSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>';
+        
+        const messageContentDiv = document.createElement('div');
+        messageContentDiv.className = 'message-content';
+        
+        const messageBubbleDiv = document.createElement('div');
+        messageBubbleDiv.className = 'message-bubble';
+        
+        const messageTimeDiv = document.createElement('div');
+        messageTimeDiv.className = 'message-time';
+        
+        messageContentDiv.appendChild(messageBubbleDiv);
+        messageContentDiv.appendChild(messageTimeDiv);
+        
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'message-avatar';
+        avatarDiv.innerHTML = avatarSvg;
+        
+        aiMessageDiv.appendChild(avatarDiv);
+        aiMessageDiv.appendChild(messageContentDiv);
+        
+        document.getElementById('chat-messages').appendChild(aiMessageDiv);
+        
+        let fullResponse = '';
+        let finalData = null;
+        
+        console.log('开始处理流响应');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let messageCount = 0;
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.slice(6));
+                        
+                        messageCount++;
+                        if (messageCount <= 3 || data.done) {
+                            console.log('SSE消息' + messageCount + ':', data);
+                        }
+                        
+                        if (data.chunk) {
+                            fullResponse += data.chunk;
+                            messageBubbleDiv.innerHTML = escapeHtml(fullResponse).replace(/\n/g, '<br>');
+                            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+                        }
+                        
+                        if (data.done) {
+                            console.log('收到done消息:', data);
+                            finalData = data;
+                            // 立即处理结束消息，不等待流结束
+                            if (finalData.is_ended) {
+                                endInterview();
+                            } else {
+                                updateStatus('在线', true);
+                                input.disabled = false;
+                                document.getElementById('send-btn').disabled = false;
+                                input.focus();
+                            }
+                        }
+                    } catch (e) {
+                        console.error('解析流数据失败:', e);
+                    }
+                }
+            }
+        }
+        
+        messageTimeDiv.textContent = formatTime(new Date().toISOString());
+        
+        // 已经在收到done消息时立即处理了，这里只处理question_count更新
+        if (finalData && finalData.question_count !== undefined) {
+            questionCount = finalData.question_count;
+            document.getElementById('question-count').textContent = questionCount;
+        }
+        
+    } catch (error) {
+        console.error('发送消息失败:', error);
+        toast.error('发送失败，请重试');
+        updateStatus('在线', true);
+        input.disabled = false;
+        document.getElementById('send-btn').disabled = false;
+    }
+}
+
+async function loadInterviewInfo() {
+    try {
+        const response = await axios.get(`/api/conversation-interview/${interviewId}`, {
+            withCredentials: true
+        });
+        
+        const data = response.data;
+        
+        if (data.interview) {
+            const interviewType = data.interview.interview_type || '';
+            const difficulty = interviewType.replace('对话式-', '') || '中级';
+            setDifficultyBadge(difficulty);
+            
+            if (data.interview.job_id) {
+                try {
+                    const jobResponse = await axios.get(`/api/jobs/${data.interview.job_id}`);
+                    document.getElementById('job-title').textContent = jobResponse.data.title;
+                } catch (e) {
+                    document.getElementById('job-title').textContent = '技术面试';
+                }
+            } else {
+                document.getElementById('job-title').textContent = '通用技术面试';
+            }
+        }
+        
+        if (data.messages && data.messages.length > 0) {
+            const messagesContainer = document.getElementById('chat-messages');
+            messagesContainer.innerHTML = '';
+            
+            for (const msg of data.messages) {
+                const role = msg.role === 'interviewer' ? 'ai' : 'user';
+                addMessage(role, msg.content, msg.timestamp);
+            }
+        }
+        
+        if (data.question_count !== undefined) {
+            questionCount = data.question_count;
+            document.getElementById('question-count').textContent = questionCount;
+        }
+        
+        if (data.is_ended || data.status === '已完成') {
+            endInterview();
+        } else {
+            document.getElementById('message-input').disabled = false;
+            document.getElementById('send-btn').disabled = false;
+            updateStatus('在线', true);
+        }
+        
+    } catch (error) {
+        console.error('加载面试信息失败:', error);
+        toast.error('加载失败，请刷新页面重试');
+    }
+}
+
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+document.getElementById('message-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+document.getElementById('message-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+loadInterviewInfo();
+</script>
+{% endblock %}

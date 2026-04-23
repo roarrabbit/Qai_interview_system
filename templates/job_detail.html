@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} - 智能招聘平台{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 32px;">
+    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 24px;">
+        <div>
+            <div class="content-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+                    <div>
+                        <h1 style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">{{ job.title }}</h1>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <span class="badge badge-gray"><i class="bi bi-geo-alt" style="margin-right: 4px;"></i>{{ job.location }}</span>
+                            <span class="badge badge-primary"><i class="bi bi-cash" style="margin-right: 4px;"></i>{{ job.salary_range }}</span>
+                            {% if job.work_experience %}<span class="badge badge-accent"><i class="bi bi-clock" style="margin-right: 4px;"></i>{{ job.work_experience }}</span>{% endif %}
+                            {% if job.education_required %}<span class="badge badge-secondary">{{ job.education_required }}</span>{% endif %}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 24px; font-weight: 700; color: var(--primary-color);">{{ job.salary_range }}</div>
+                        {% if job.hiring_count %}<div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">招聘{{ job.hiring_count }}人</div>{% endif %}
+                    </div>
+                </div>
+                
+                <div style="background-color: var(--bg-muted); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--primary-color);">
+                        <i class="bi bi-building" style="margin-right: 8px;"></i>公司信息
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                        <div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">公司名称</p>
+                            <p style="font-size: 15px; font-weight: 500;">{{ job.hr.company_name or '未提供' }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">行业</p>
+                            <p style="font-size: 15px; font-weight: 500;">{{ job.hr.industry or '未提供' }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">公司规模</p>
+                            <p style="font-size: 15px; font-weight: 500;">{{ job.hr.company_size or '未提供' }}</p>
+                        </div>
+                        <div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">联系人</p>
+                            <p style="font-size: 15px; font-weight: 500;">{{ job.hr.contact_person or '未提供' }}</p>
+                        </div>
+                        {% if job.hr.contact_phone %}
+                        <div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">联系电话</p>
+                            <p style="font-size: 15px; font-weight: 500;">{{ job.hr.contact_phone }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if job.hr.company_description %}
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light);">
+                        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">公司简介</p>
+                        <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">{{ job.hr.company_description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">岗位描述</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.8; font-size: 15px;">{{ job.description }}</p>
+                </div>
+                
+                {% if job.required_skills %}
+                <div style="margin-bottom: 24px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">技能要求</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        {% for skill in job.required_skills.split(',') %}
+                        {% if skill.strip() %}
+                        <span class="skill-tag primary">{{ skill.strip() }}</span>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div style="padding-top: 16px; border-top: 1px solid var(--border-light);">
+                    <p style="font-size: 13px; color: var(--text-muted);">
+                        <i class="bi bi-clock" style="margin-right: 6px;"></i>
+                        发布时间：{{ job.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </p>
+                </div>
+            </div>
+            
+            {% if user and user.role == 'candidate' %}
+            <div class="content-card" style="margin-top: 24px;">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px;">申请操作</h3>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    {% if has_applied %}
+                    <button class="btn btn-outline" disabled>
+                        <i class="bi bi-check-circle"></i>
+                        已投递
+                    </button>
+                    {% else %}
+                    <button class="btn btn-primary btn-lg" onclick="submitApplication()">
+                        <i class="bi bi-send"></i>
+                        一键投递
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-accent btn-lg" onclick="startInterview()" id="start-interview-btn">
+                        <i class="bi bi-robot"></i>
+                        开始AI面试
+                    </button>
+                    <button class="btn btn-outline btn-lg" onclick="contactHR()">
+                        <i class="bi bi-chat-dots"></i>
+                        咨询HR
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if user and user.role == 'candidate' %}
+        <div class="sidebar" style="position: sticky; top: 96px;">
+            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--primary-color);">
+                <i class="bi bi-send" style="margin-right: 8px;"></i>快速投递
+            </h3>
+            <button class="btn btn-primary btn-block" onclick="submitApplication()">
+                投递简历
+            </button>
+            {% if application %}
+            <button class="btn btn-outline btn-block" onclick="cancelApplication()">
+                取消投递
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% if user and user.role == 'candidate' and not has_applied %}
+async function submitApplication() {
+    try {
+        await axios.post('/api/applications/', { job_id: {{ job.id }} }, { withCredentials: true });
+        toast.success('投递成功！HR已收到您的申请');
+        setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+        if (error.response?.status === 401) {
+            toast.error('请先登录');
+            setTimeout(() => location.href = '/login', 1000);
+        } else {
+            toast.error('投递失败：' + (error.response?.data?.detail || '未知错误'));
+        }
+    }
+}
+{% endif %}
+
+{% if user and user.role == 'hr' and job.hr_id == user.id %}
+async function loadRecommendedCandidates() {
+    try {
+        const response = await axios.get('/api/jobs/{{ job.id }}/recommendations', { withCredentials: true });
+        const container = document.getElementById('recommended-candidates');
+        
+        if (response.data.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); font-size: 14px; text-align: center;">暂无推荐候选人</p>';
+            return;
+        }
+        
+        container.innerHTML = response.data.map(item => {
+            const candidate = item.candidate;
+            const matchPercentage = item.match_percentage;
+            return `
+                <div style="padding: 16px 0; border-bottom: 1px solid var(--border-light);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div class="avatar">${(candidate.real_name || '未')[0]}</div>
+                        <div style="flex: 1;">
+                            <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 4px;">${escapeHtml(candidate.real_name || '未填写')}</h4>
+                            <p style="font-size: 12px; color: var(--text-muted);">${escapeHtml(candidate.target_job || '未填写求职意向')}</p>
+                        </div>
+                        <span class="badge badge-success">${Math.round(matchPercentage)}%</span>
+                    </div>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+                        <i class="bi bi-tools" style="margin-right: 4px;"></i>${escapeHtml(candidate.skills || '未填写技能')}
+                    </p>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm btn-outline" onclick="contactCandidate(${candidate.user_id})">
+                            <i class="bi bi-chat-dots"></i>
+                            联系
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('加载推荐候选人失败:', error);
+    }
+}
+
+async function contactCandidate(userId) {
+    try {
+        await axios.post('/api/messages/', {
+            receiver_id: userId,
+            content: '你好，看到你的简历很感兴趣，想和你聊聊。'
+        }, { withCredentials: true });
+        
+        sessionStorage.setItem('chatTargetUserId', userId);
+        window.location.href = '/chat';
+    } catch (error) {
+        toast.error('发送消息失败');
+    }
+}
+
+loadRecommendedCandidates();
+
+async function editJob() {
+    window.location.href = '/hr-dashboard?edit={{ job.id }}';
+}
+
+async function deleteJob() {
+    showConfirm('确认删除', '确定要删除此岗位吗？删除后无法恢复。', async () => {
+        try {
+            await axios.delete('/api/jobs/{{ job.id }}', { withCredentials: true });
+            toast.success('删除成功');
+            setTimeout(() => window.location.href = '/hr-dashboard', 1000);
+        } catch (error) {
+            toast.error('删除失败');
+        }
+    });
+}
+{% endif %}
+
+{% if user and user.role == 'candidate' %}
+async function startInterview() {
+    const btn = document.getElementById('start-interview-btn');
+    
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="loading-spinner" style="width: 16px; height: 16px;"></div> 创建中...';
+        
+        showAILoading();
+        
+        const response = await axios.post('/api/interviews/', { job_id: {{ job.id }} }, {
+            withCredentials: true,
+            timeout: 200000
+        });
+        
+        hideAILoading();
+        toast.success('面试创建成功！');
+        
+        setTimeout(() => {
+            window.location.href = '/interview/' + response.data.id;
+        }, 500);
+        
+    } catch (error) {
+        hideAILoading();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-robot"></i> 开始AI面试';
+        
+        let errorMsg = '创建面试失败';
+        if (error.code === 'ECONNABORTED') {
+            errorMsg = 'AI服务响应超时，请检查服务是否正常';
+        } else if (error.response?.data?.detail) {
+            errorMsg = error.response.data.detail;
+        }
+        
+        toast.error(errorMsg);
+    }
+}
+
+function showAILoading() {
+    const overlay = document.createElement('div');
+    overlay.id = 'ai-loading';
+    overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 9999;';
+    
+    overlay.innerHTML = `
+        <div style="background: white; padding: 40px; border-radius: var(--radius-lg); text-align: center; max-width: 400px;">
+            <div style="width: 64px; height: 64px; background: var(--primary-light); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i class="bi bi-robot" style="font-size: 32px; color: var(--primary-color);"></i>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">AI面试官正在准备中</h3>
+            <div class="progress" style="margin-bottom: 16px;">
+                <div class="progress-bar" id="ai-progress" style="width: 0%;"></div>
+            </div>
+            <p style="font-size: 14px; color: var(--text-muted);" id="ai-status">正在分析岗位要求...</p>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    let progress = 0;
+    const messages = ['正在分析岗位要求...', 'AI正在生成面试问题...', '正在优化问题难度...', '即将完成...'];
+    const interval = setInterval(() => {
+        progress += Math.random() * 15 + 5;
+        if (progress > 90) progress = 90;
+        
+        const bar = document.getElementById('ai-progress');
+        const status = document.getElementById('ai-status');
+        if (bar) bar.style.width = progress + '%';
+        if (status) status.textContent = messages[Math.min(Math.floor(progress / 25), messages.length - 1)];
+    }, 2000);
+    
+    overlay.dataset.interval = interval;
+}
+
+function hideAILoading() {
+    const overlay = document.getElementById('ai-loading');
+    if (overlay) {
+        clearInterval(parseInt(overlay.dataset.interval));
+        const bar = document.getElementById('ai-progress');
+        if (bar) bar.style.width = '100%';
+        setTimeout(() => overlay.remove(), 300);
+    }
+}
+
+{% if hr_user_id %}
+function contactHR() {
+    const hrUserId = {{ hr_user_id }};
+    const jobId = {{ job.id }};
+    window.location.href = '/chat?user_id=' + hrUserId + '&job_id=' + jobId;
+}
+{% endif %}
+{% endif %}
+</script>
+{% endblock %}
